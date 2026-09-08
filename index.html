@@ -653,22 +653,7 @@ window.db = db;
 
 /* =====================================================================
    DYLAN CAFE — DIGITAL MENU
-   -----------------------------------------------------------------
-   DATA / BACKEND LAYER — currently a local, in-memory placeholder.
-   The old Firebase/Firestore integration has been fully removed and
-   the old seed menu (categories + items) has been cleared. Everything
-   menu-related still goes through the MenuAPI object below, so the
-   next step only needs to swap MenuAPI's internals for a real backend
-   without touching any call site in this file.
-===================================================================== */
-   DYLAN CAFE — DIGITAL MENU
-   -----------------------------------------------------------------
-   DATA / BACKEND LAYER — currently a local, in-memory placeholder.
-   The old Firebase/Firestore integration has been fully removed and
-   the old seed menu (categories + items) has been cleared. Everything
-   menu-related still goes through the MenuAPI object below, so the
-   next step only needs to swap MenuAPI's internals for a real backend
-   without touching any call site in this file.
+   FIRESTORE REAL-TIME DATA LAYER
 ===================================================================== */
 
 // Inline SVG icon set — used instead of an icon font so icons never
@@ -773,15 +758,22 @@ const MenuAPI = {
 
   startMenuListener() {
     if (unsubscribeMenu) unsubscribeMenu();
-    const menuQuery = query(collection(db, 'menu'), orderBy('name'));
-    unsubscribeMenu = onSnapshot(menuQuery, snapshot => {
-      MENU_ITEMS = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    // Read the collection directly and sort in the browser. This avoids
+    // failures caused by an incomplete/missing Firestore index or by an
+    // old document that does not contain a name field.
+    unsubscribeMenu = onSnapshot(collection(db, 'menu'), snapshot => {
+      MENU_ITEMS = snapshot.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'ar'));
+
       renderCategoryNav();
       renderMenu();
       renderCart();
       if (!adminPanel.classList.contains('js-hidden')) renderAdminItemsList();
     }, error => {
       console.error('Firestore menu listener error:', error);
+      MENU_ITEMS = [];
+      renderMenu();
       showToast('تعذّر تحميل القائمة من Firebase');
     });
     return unsubscribeMenu;
@@ -789,12 +781,21 @@ const MenuAPI = {
 
   startOrdersListener() {
     if (unsubscribeOrders) unsubscribeOrders();
-    const ordersQuery = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
-    unsubscribeOrders = onSnapshot(ordersQuery, snapshot => {
-      ORDERS = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    // Sort client-side so orders still load even if some legacy document
+    // is missing createdAt.
+    unsubscribeOrders = onSnapshot(collection(db, 'orders'), snapshot => {
+      ORDERS = snapshot.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => {
+          const ta = a.createdAt?.toMillis ? a.createdAt.toMillis() : (new Date(a.createdAt || 0)).getTime();
+          const tb = b.createdAt?.toMillis ? b.createdAt.toMillis() : (new Date(b.createdAt || 0)).getTime();
+          return tb - ta;
+        });
       renderAdminOrders();
     }, error => {
       console.error('Firestore orders listener error:', error);
+      ORDERS = [];
+      renderAdminOrders();
       showToast('تعذّر تحميل الطلبات من Firebase');
     });
     return unsubscribeOrders;
@@ -1051,11 +1052,17 @@ checkoutBtn.addEventListener('click', async () => {
     return { id, name: item.name, price: item.price, qty };
   });
 
-  await MenuAPI.submitOrder({
-    table: tableNumber,
-    items: orderItems,
-    total,
-  });
+  try {
+    await MenuAPI.submitOrder({
+      table: tableNumber,
+      items: orderItems,
+      total,
+    });
+  } catch (err) {
+    console.error(err);
+    showToast('تعذّر إرسال الطلب، تحقق من اتصال Firebase');
+    return;
+  }
 
   cart = {};
   cartTableInput.value = '';
@@ -1516,10 +1523,13 @@ async function deleteItemConfirm(id){
   const item = items.find(i => i.id === id);
   if (!item) return;
   if (!confirm(`هل تريد حذف "${item.name}" من القائمة؟`)) return;
-  await MenuAPI.deleteItem(id);
-  await renderAdminItemsList();
-  await renderMenu();
-  showToast('تم حذف الصنف');
+  try {
+    await MenuAPI.deleteItem(id);
+    showToast('تم حذف الصنف');
+  } catch (err) {
+    console.error(err);
+    showToast('تعذّر حذف الصنف من Firebase');
+  }
 }
 
 itemForm.addEventListener('submit', async (e) => {
@@ -1530,19 +1540,25 @@ itemForm.addEventListener('submit', async (e) => {
     category: itemFormCategory.value,
     image: itemFormImage.value,
   };
-  if (!payload.name || !(payload.price >= 0)) return;
-
-  if (editingItemId) {
-    await MenuAPI.updateItem(editingItemId, payload);
-    showToast('تم تحديث الصنف');
-  } else {
-    await MenuAPI.addItem(payload);
-    showToast('تمت إضافة الصنف');
+  if (!payload.name || !Number.isFinite(payload.price) || payload.price < 0) {
+    showToast('أدخل اسم المنتج وسعراً صحيحاً');
+    return;
   }
 
-  resetItemForm();
-  await renderAdminItemsList();
-  await renderMenu();
+  try {
+    if (editingItemId) {
+      await MenuAPI.updateItem(editingItemId, payload);
+      showToast('تم تحديث الصنف');
+    } else {
+      await MenuAPI.addItem(payload);
+      showToast('تمت إضافة الصنف');
+    }
+
+    resetItemForm();
+  } catch (err) {
+    console.error(err);
+    showToast('تعذّر حفظ الصنف في Firebase');
+  }
 });
 
 /* ---------------------------------------------------------------
