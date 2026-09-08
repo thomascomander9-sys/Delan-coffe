@@ -495,6 +495,12 @@
   تمت الإضافة إلى السلة
 </div>
 
+<!-- FIREBASE STATUS / DIAGNOSTICS -->
+<div id="firebaseStatus" class="js-hidden fixed top-3 left-1/2 -translate-x-1/2 z-[120] w-[calc(100%-24px)] max-w-2xl rounded-2xl border border-red-400/50 bg-[#160d0b] text-white px-4 py-3 shadow-2xl">
+  <div class="font-semibold text-red-300 mb-1">تعذّر التحميل من Firebase</div>
+  <div id="firebaseStatusText" class="text-xs leading-relaxed text-red-100 break-words"></div>
+</div>
+
 
 <style id="thermal-print-styles">
   /* =========================================================
@@ -695,8 +701,35 @@ const CATEGORIES = [
   { id: 'cold-drinks', name: 'المشاريب الباردة', icon: 'cold' },
 ];
 
-let MENU_ITEMS = [];
+let MENU_ITEMS = [
+  { id:'item-1', name:'مأمونية حلبية', price:400, category:'breakfast', image:'' },
+  { id:'item-2', name:'مرتديلا', price:200, category:'breakfast', image:'' },
+  { id:'item-3', name:'بيض', price:200, category:'breakfast', image:'' },
+  { id:'item-4', name:'جبنة مشللة', price:200, category:'breakfast', image:'' },
+  { id:'item-5', name:'فلافل', price:150, category:'breakfast', image:'' },
+  { id:'item-6', name:'مكدوس', price:200, category:'breakfast', image:'' },
+  { id:'item-7', name:'عطون', price:150, category:'breakfast', image:'' },
+  { id:'item-8', name:'حمص مع طحينة', price:200, category:'breakfast', image:'' },
+  { id:'item-9', name:'زيتون أخضر', price:150, category:'breakfast', image:'' },
+  { id:'item-10', name:'عسل مع قشطة بلدية', price:400, category:'breakfast', image:'' },
+  { id:'item-11', name:'جبنة مسنرة', price:200, category:'breakfast', image:'' },
+  { id:'item-12', name:'مربيات بأنواعها', price:200, category:'breakfast', image:'' },
+  { id:'item-13', name:'زعتر', price:100, category:'breakfast', image:'' },
+  { id:'item-14', name:'شاي', price:100, category:'hot-drinks', image:'' },
+  { id:'item-15', name:'قهوة', price:100, category:'hot-drinks', image:'' },
+  { id:'item-16', name:'3 × 1', price:150, category:'hot-drinks', image:'' },
+  { id:'item-17', name:'2 × 1', price:150, category:'hot-drinks', image:'' },
+  { id:'item-18', name:'ميلو', price:150, category:'hot-drinks', image:'' },
+  { id:'item-19', name:'كابتشينو', price:200, category:'hot-drinks', image:'' },
+  { id:'item-20', name:'زهورات', price:100, category:'hot-drinks', image:'' },
+  { id:'item-21', name:'كمون وليمون', price:100, category:'hot-drinks', image:'' },
+  { id:'item-22', name:'غازية بكل أنواعها', price:150, category:'cold-drinks', image:'' },
+  { id:'item-23', name:'سلس طبيعي بأنواعه', price:150, category:'cold-drinks', image:'' },
+  { id:'item-24', name:'كوكتيلات فريش', price:250, category:'cold-drinks', image:'' },
+];
 let ORDERS = [];
+let firebaseMenuReady = false;
+let firebaseOrdersReady = false;
 let unsubscribeMenu = null;
 let unsubscribeOrders = null;
 
@@ -762,19 +795,30 @@ const MenuAPI = {
     // failures caused by an incomplete/missing Firestore index or by an
     // old document that does not contain a name field.
     unsubscribeMenu = onSnapshot(collection(db, 'menu'), snapshot => {
-      MENU_ITEMS = snapshot.docs
-        .map(d => ({ id: d.id, ...d.data() }))
-        .sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'ar'));
-
+      firebaseMenuReady = true;
+      clearFirebaseError();
+      if (snapshot.empty) {
+        // Keep the built-in menu visible if Firestore is empty.
+        // The admin can add the real Firestore items from the dashboard.
+        showToast('Firebase متصل، لكن قائمة menu فارغة');
+      } else {
+        MENU_ITEMS = snapshot.docs
+          .map(d => ({ id: d.id, ...d.data() }))
+          .sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'ar'));
+      }
       renderCategoryNav();
       renderMenu();
       renderCart();
       if (!adminPanel.classList.contains('js-hidden')) renderAdminItemsList();
     }, error => {
-      console.error('Firestore menu listener error:', error);
-      MENU_ITEMS = [];
+      firebaseMenuReady = false;
+      showFirebaseError(error, 'تحميل القائمة');
+      showToast('تعذّر التحميل من Firebase');
+      // Keep the last known/built-in menu instead of blanking the page.
+      renderCategoryNav();
       renderMenu();
-      showToast('تعذّر تحميل القائمة من Firebase');
+      renderCart();
+      if (!adminPanel.classList.contains('js-hidden')) renderAdminItemsList();
     });
     return unsubscribeMenu;
   },
@@ -784,6 +828,8 @@ const MenuAPI = {
     // Sort client-side so orders still load even if some legacy document
     // is missing createdAt.
     unsubscribeOrders = onSnapshot(collection(db, 'orders'), snapshot => {
+      firebaseOrdersReady = true;
+      clearFirebaseError();
       ORDERS = snapshot.docs
         .map(d => ({ id: d.id, ...d.data() }))
         .sort((a, b) => {
@@ -793,10 +839,10 @@ const MenuAPI = {
         });
       renderAdminOrders();
     }, error => {
-      console.error('Firestore orders listener error:', error);
-      ORDERS = [];
-      renderAdminOrders();
+      firebaseOrdersReady = false;
+      showFirebaseError(error, 'تحميل الطلبات');
       showToast('تعذّر تحميل الطلبات من Firebase');
+      renderAdminOrders();
     });
     return unsubscribeOrders;
   }
@@ -820,6 +866,26 @@ function showToast(message){
   toast.classList.remove('js-hidden');
   clearTimeout(showToast._t);
   showToast._t = setTimeout(() => toast.classList.add('js-hidden'), 1800);
+}
+
+function firebaseErrorText(error){
+  const code = error?.code || 'unknown';
+  const message = error?.message || String(error || 'Unknown Firebase error');
+  return `الكود: ${code} — ${message}`;
+}
+
+function showFirebaseError(error, area='Firebase'){
+  const box = document.getElementById('firebaseStatus');
+  const text = document.getElementById('firebaseStatusText');
+  if (!box || !text) return;
+  text.textContent = `${area}: ${firebaseErrorText(error)}`;
+  box.classList.remove('js-hidden');
+  console.error(`[${area}]`, error);
+}
+
+function clearFirebaseError(){
+  const box = document.getElementById('firebaseStatus');
+  if (box) box.classList.add('js-hidden');
 }
 
 function escapeHtml(str){
@@ -1559,6 +1625,13 @@ itemForm.addEventListener('submit', async (e) => {
     console.error(err);
     showToast('تعذّر حفظ الصنف في Firebase');
   }
+});
+
+window.addEventListener('error', (event) => {
+  if (event?.error) showFirebaseError(event.error, 'خطأ JavaScript');
+});
+window.addEventListener('unhandledrejection', (event) => {
+  if (event?.reason) showFirebaseError(event.reason, 'خطأ Firebase/JavaScript');
 });
 
 /* ---------------------------------------------------------------
