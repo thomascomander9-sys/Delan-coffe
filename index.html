@@ -981,6 +981,27 @@ async function init() {
     await renderAdminItemList();
 }
 
+  // البحث عن زر القائمة العلوي
+const menuBtn = document.querySelector('button:has(svg), .menu-toggle-btn') || document.querySelectorAll('header button')[2];
+
+if (menuBtn) {
+    menuBtn.addEventListener('click', () => {
+        const password = prompt('الرجاء إدخال كلمة المرور لدخول لوحة التحكم:');
+        if (password === 'Dylan') {
+            const adminSection = document.getElementById('adminPanel') || document.getElementById('adminItemList')?.closest('section');
+            if (adminSection) {
+                adminSection.scrollIntoView({ behavior: 'smooth' });
+                adminSection.classList.remove('hidden');
+                showToast('تم تسجيل الدخول بنجاح');
+            } else {
+                alert('لم يتم العثور على قسم الأدمن في الصفحة');
+            }
+        } else if (password !== null) {
+            alert('كلمة المرور غير صحيحة!');
+        }
+    });
+}
+
 init();
 </script>
 </body>
