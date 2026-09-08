@@ -5,19 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
 <title>Dylan Cafe | ديلان كافيه</title>
 
-<!-- Tailwind CSS — compiled locally and inlined below (see <style id="tailwind-build">).
-     We intentionally do NOT use <script src="https://cdn.tailwindcss.com">: that CDN
-     build is a runtime JIT compiler, so if the customer's phone can't reach it (blocked
-     CDN, firewall, flaky mobile data — common in some regions), it throws "tailwind is
-     not defined" and EVERY Tailwind class on the page (fixed, inset-0, flex, grid, w-full,
-     etc.) silently does nothing. Shipping a pre-built, self-contained stylesheet removes
-     that single point of failure entirely. -->
-<!-- Icons are inline SVG (no external icon font), so they always render
-     correctly even when a CDN is blocked or offline. -->
-<!-- Fonts: Cormorant Garamond (Latin display), Amiri (Arabic display), Cairo (Arabic UI).
-     These still load from Google Fonts, but that is safe: if they fail, the CSS below
-     already lists 'serif'/'sans-serif' fallbacks, so only the typography looks slightly
-     different — nothing breaks or becomes unusable. -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,500&family=Amiri:wght@400;700&family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
@@ -41,7 +28,6 @@
   }
   .font-display{ font-family:'Cormorant Garamond','Amiri', serif; }
 
-  /* Gold shimmer divider — the site's signature motif */
   .gold-divider{
     position:relative;
     height:2px;
@@ -129,7 +115,6 @@
   }
   ::selection{ background:#E3C179; color:#3B2A17; }
 
-  /* Drawer */
   .drawer{
     transition: transform .35s cubic-bezier(.22,.9,.3,1);
   }
@@ -139,7 +124,6 @@
     *{ transition:none !important; animation-duration:.001s !important; }
   }
 
-  /* Inline SVG icon system — replaces icon fonts entirely */
   .icon{
     display:inline-block;
     width:1em; height:1em;
@@ -156,31 +140,17 @@
     stroke-linejoin:round;
   }
 
-  /* Bulletproof show/hide for anything toggled from JS.
-     Tailwind's own `.hidden` utility can lose to another display
-     utility (e.g. `.flex`) present on the same element depending on
-     CSS generation order, which silently breaks modals/badges that
-     combine a permanent "flex" with a toggled "hidden". `!important`
-     here guarantees this class always wins, in either direction. */
   .js-hidden{ display:none !important; }
 </style>
 
-<!-- =========================================================
-     DARK LUXURY THEME — Dylan Cafe (Black + Gold/Copper)
-     Overrides the light "cream" palette above. Kept as a separate,
-     later stylesheet so every existing utility class and component
-     keeps working unchanged — these rules simply win the cascade
-     (same selectors, loaded after) instead of editing every class
-     usage across the markup and the JS templates.
-========================================================= -->
 <style id="dark-luxury-theme">
   :root{
-    --dl-bg-0:#0A0806;      /* page base black */
-    --dl-bg-1:#120D08;      /* raised surface (cards, header) */
-    --dl-bg-2:#1A140C;      /* higher surface (modals) */
-    --dl-ink:#F1E4C6;       /* primary light text on black */
-    --dl-ink-muted:#C9B892; /* secondary text on black */
-    --dl-copper:#D9A653;    /* gold/copper accent for prices, links */
+    --dl-bg-0:#0A0806;
+    --dl-bg-1:#120D08;
+    --dl-bg-2:#1A140C;
+    --dl-ink:#F1E4C6;
+    --dl-ink-muted:#C9B892;
+    --dl-copper:#D9A653;
     --dl-copper-deep:#B9873F;
   }
 
@@ -193,7 +163,6 @@
     color: var(--dl-ink);
   }
 
-  /* Surfaces: header / drawers / modals / cards */
   .bg-cream, .bg-cream\/85{ background-color: rgba(10,8,6,.90) !important; }
   .modal-backdrop{
     background: radial-gradient(circle at 50% 20%, rgba(10,8,6,.75), rgba(0,0,0,.90));
@@ -217,12 +186,8 @@
       #14100A;
   }
 
-  /* Text: headings / body previously "dark ink on cream" become
-     "light gold-cream on black" */
   .text-\[\#3B2A17\]{ color: var(--dl-ink) !important; }
 
-  /* Gold/copper is the accent for buttons, prices and selections —
-     brightened so it reads clearly on black instead of on cream. */
   .text-gold-600{ color: var(--dl-copper) !important; }
   .text-gold-700{ color: var(--dl-copper-deep) !important; }
   .hover\:bg-gold-100\/40:hover, .hover\:bg-gold-100\/60:hover, .bg-gold-100\/40{
@@ -231,12 +196,109 @@
   .tab-pill{ border-color: rgba(217,166,83,.30); color: var(--dl-ink-muted); }
   .tab-pill.active{ color:#241705; }
 
-  /* Inputs stay dark with light text; gold focus ring already fits */
   input[type="text"], input[type="password"], input[type="number"], input[type="url"], textarea, select{
     background:#14100A;
     color: var(--dl-ink);
   }
   ::selection{ background:#D9A653; color:#1A1209; }
+</style>
+
+<!-- =========================================================
+     CSS MOCK - THERMAL RECEIPT PRINTING (80mm)
+========================================================= -->
+<style id="thermal-print-style">
+  #printable-receipt {
+    display: none;
+  }
+
+  @media print {
+    /* Hide everything on the page */
+    body * {
+      visibility: hidden !important;
+    }
+
+    /* Show only the receipt container and its children */
+    #printable-receipt, #printable-receipt * {
+      visibility: visible !important;
+    }
+
+    #printable-receipt {
+      display: block !important;
+      position: absolute !important;
+      left: 0 !important;
+      top: 0 !important;
+      width: 80mm !important;
+      margin: 0 !important;
+      padding: 4mm !important;
+      background: #fff !important;
+      color: #000 !important;
+      font-family: 'Courier New', Courier, monospace, 'Cairo', sans-serif !important;
+      font-size: 12px !important;
+      line-height: 1.3 !important;
+      direction: rtl !important;
+      text-align: right !important;
+    }
+
+    .receipt-header {
+      text-align: center;
+      border-bottom: 1px dashed #000;
+      padding-bottom: 6px;
+      margin-bottom: 8px;
+    }
+
+    .receipt-header h2 {
+      font-size: 18px;
+      font-weight: bold;
+      margin: 0;
+    }
+
+    .receipt-header p {
+      font-size: 11px;
+      margin: 2px 0 0 0;
+    }
+
+    .receipt-info {
+      font-size: 11px;
+      margin-bottom: 8px;
+      border-bottom: 1px dashed #000;
+      padding-bottom: 6px;
+    }
+
+    .receipt-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 8px;
+    }
+
+    .receipt-table th {
+      border-bottom: 1px solid #000;
+      text-align: right;
+      padding: 4px 0;
+      font-size: 11px;
+    }
+
+    .receipt-table td {
+      padding: 4px 0;
+      font-size: 11px;
+      vertical-align: top;
+    }
+
+    .receipt-total {
+      border-top: 1px dashed #000;
+      padding-top: 6px;
+      text-align: left;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .receipt-footer {
+      text-align: center;
+      margin-top: 12px;
+      font-size: 10px;
+      border-top: 1px dashed #000;
+      padding-top: 6px;
+    }
+  }
 </style>
 </head>
 
@@ -248,9 +310,6 @@
 <header class="sticky top-0 z-40 backdrop-blur bg-cream/85 border-b border-gold-300/40">
   <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
 
-    <!-- Controls cluster: placed FIRST in the markup so, in this RTL
-         layout, it sits at the top-RIGHT corner of the page — with the
-         hamburger itself as the very first (rightmost) element. -->
     <div class="flex items-center gap-2 sm:gap-3">
       <!-- Hamburger menu -->
       <div class="relative">
@@ -369,10 +428,11 @@
 </div>
 
 <!-- =========================================================
-     ADMIN — DASHBOARD MODAL
+     ADMIN — DASHBOARD MODAL (SPLIT IN TWO TABS)
 ========================================================= -->
 <div id="adminPanel" class="js-hidden fixed inset-0 z-[100] p-3 sm:p-6 modal-backdrop overflow-y-auto">
   <div class="modal-panel w-full max-w-5xl mx-auto rounded-2xl shadow-gold my-4 fade-in">
+    <!-- Modal Header -->
     <div class="flex items-center justify-between px-6 py-4 border-b border-gold-300/40">
       <h2 class="font-display text-2xl sm:text-3xl text-[#3B2A17] flex items-center gap-2">
         <span class="icon text-gold-500"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V6l7-3z"/><path d="M9.3 12l1.8 1.8L14.7 10"/></svg></span>
@@ -383,66 +443,99 @@
       </button>
     </div>
 
-    <div class="p-6 grid lg:grid-cols-[1.1fr_1.4fr] gap-6">
-      <!-- Add / Edit item form -->
-      <div>
-        <h3 class="font-display text-xl mb-3 text-[#3B2A17]" id="itemFormTitle">إضافة عنصر جديد</h3>
-        <form id="itemForm" class="space-y-3 bg-white/50 border border-gold-300/40 rounded-xl p-4">
-          <input type="hidden" id="itemFormId">
-          <div>
-            <label class="block text-xs mb-1 text-gold-700">اسم الصنف</label>
-            <input id="itemFormName" type="text" required class="w-full rounded-lg border border-gold-300 px-3 py-2 outline-none focus:ring-2 focus:ring-gold-400">
-          </div>
-          <div>
-            <label class="block text-xs mb-1 text-gold-700">السعر (ل.س)</label>
-            <input id="itemFormPrice" type="number" min="0" step="1" required class="w-full rounded-lg border border-gold-300 px-3 py-2 outline-none focus:ring-2 focus:ring-gold-400">
-          </div>
-          <div>
-            <label class="block text-xs mb-1 text-gold-700">التصنيف</label>
-            <select id="itemFormCategory" class="w-full rounded-lg border border-gold-300 px-3 py-2 outline-none focus:ring-2 focus:ring-gold-400"></select>
-          </div>
-          <div>
-            <label class="block text-xs mb-1 text-gold-700">صورة الصنف (Landscape) — رفع من الجهاز</label>
-            <input type="hidden" id="itemFormImage">
-            <label for="itemFormImageFile" class="flex flex-col items-center justify-center gap-1.5 w-full border-2 border-dashed border-gold-300 rounded-lg py-5 cursor-pointer hover:bg-gold-100/40 transition text-gold-600">
-              <span class="icon text-2xl"><svg viewBox="0 0 24 24"><path d="M12 16V4M12 4l-4 4M12 4l4 4"/><path d="M4 16v3a2 2 0 002 2h12a2 2 0 002-2v-3"/></svg></span>
-              <span class="text-xs" id="itemFormImageLabel">اضغط لرفع صورة (JPG / PNG)</span>
-            </label>
-            <input id="itemFormImageFile" type="file" accept="image/*" class="js-hidden">
-            <div id="itemFormImagePreviewWrap" class="js-hidden mt-2 relative">
-              <img id="itemFormImagePreview" class="w-full aspect-[16/9] object-cover rounded-lg border border-gold-300/50">
-              <button type="button" id="itemFormImageRemoveBtn" class="absolute top-1.5 left-1.5 w-7 h-7 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70">
-                <span class="icon text-xs"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></span>
+    <!-- Dashboard Main Navigation Tabs -->
+    <div class="px-6 pt-4 border-b border-gold-300/30 flex gap-3">
+      <button id="tabBtnMenu" class="tab-pill active px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2">
+        <span class="icon text-lg"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span>
+        تعديل المنيو والأسعار
+      </button>
+      <button id="tabBtnOrders" class="tab-pill px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 relative">
+        <span class="icon text-lg"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg></span>
+        استقبال الطلبات الحية
+        <span id="liveOrdersBadge" class="js-hidden bg-[#6B2B2B] text-white text-[10px] rounded-full px-2 py-0.5 font-bold">0</span>
+      </button>
+    </div>
+
+    <div class="p-6">
+      <!-- TAB 1: EDIT MENU & PRICES -->
+      <div id="tabContentMenu" class="grid lg:grid-cols-[1.1fr_1.4fr] gap-6">
+        <!-- Add / Edit item form -->
+        <div>
+          <h3 class="font-display text-xl mb-3 text-[#3B2A17]" id="itemFormTitle">إضافة عنصر جديد</h3>
+          <form id="itemForm" class="space-y-3 bg-white/50 border border-gold-300/40 rounded-xl p-4">
+            <input type="hidden" id="itemFormId">
+            <div>
+              <label class="block text-xs mb-1 text-gold-700">اسم الصنف</label>
+              <input id="itemFormName" type="text" required class="w-full rounded-lg border border-gold-300 px-3 py-2 outline-none focus:ring-2 focus:ring-gold-400">
+            </div>
+            <div>
+              <label class="block text-xs mb-1 text-gold-700">السعر (ل.س)</label>
+              <input id="itemFormPrice" type="number" min="0" step="1" required class="w-full rounded-lg border border-gold-300 px-3 py-2 outline-none focus:ring-2 focus:ring-gold-400">
+            </div>
+            <div>
+              <label class="block text-xs mb-1 text-gold-700">التصنيف</label>
+              <select id="itemFormCategory" class="w-full rounded-lg border border-gold-300 px-3 py-2 outline-none focus:ring-2 focus:ring-gold-400"></select>
+            </div>
+            <div>
+              <label class="block text-xs mb-1 text-gold-700">صورة الصنف (Landscape) — رفع من الجهاز</label>
+              <input type="hidden" id="itemFormImage">
+              <label for="itemFormImageFile" class="flex flex-col items-center justify-center gap-1.5 w-full border-2 border-dashed border-gold-300 rounded-lg py-5 cursor-pointer hover:bg-gold-100/40 transition text-gold-600">
+                <span class="icon text-2xl"><svg viewBox="0 0 24 24"><path d="M12 16V4M12 4l-4 4M12 4l4 4"/><path d="M4 16v3a2 2 0 002 2h12a2 2 0 002-2v-3"/></svg></span>
+                <span class="text-xs" id="itemFormImageLabel">اضغط لرفع صورة (JPG / PNG)</span>
+              </label>
+              <input id="itemFormImageFile" type="file" accept="image/*" class="js-hidden">
+              <div id="itemFormImagePreviewWrap" class="js-hidden mt-2 relative">
+                <img id="itemFormImagePreview" class="w-full aspect-[16/9] object-cover rounded-lg border border-gold-300/50">
+                <button type="button" id="itemFormImageRemoveBtn" class="absolute top-1.5 left-1.5 w-7 h-7 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70">
+                  <span class="icon text-xs"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></span>
+                </button>
+              </div>
+            </div>
+            <div class="flex gap-2 pt-1">
+              <button type="button" id="itemFormResetBtn" class="flex-1 rounded-lg py-2.5 border border-gold-300 text-sm hover:bg-gold-100/60">إلغاء التعديل</button>
+              <button type="submit" class="flex-1 btn-gold rounded-lg py-2.5 font-semibold text-sm flex items-center justify-center gap-1.5">
+                <span class="icon"><svg viewBox="0 0 24 24"><path d="M5 4h11l3 3v13H5V4z"/><path d="M8 4v5h7V4M8 14h8v6H8z"/></svg></span>
+                حفظ
               </button>
             </div>
-          </div>
-          <div class="flex gap-2 pt-1">
-            <button type="button" id="itemFormResetBtn" class="flex-1 rounded-lg py-2.5 border border-gold-300 text-sm hover:bg-gold-100/60">إلغاء التعديل</button>
-            <button type="submit" class="flex-1 btn-gold rounded-lg py-2.5 font-semibold text-sm flex items-center justify-center gap-1.5">
-              <span class="icon"><svg viewBox="0 0 24 24"><path d="M5 4h11l3 3v13H5V4z"/><path d="M8 4v5h7V4M8 14h8v6H8z"/></svg></span>
-              حفظ
-            </button>
-          </div>
-        </form>
+          </form>
 
-        <div class="mt-4 bg-gold-100/40 border border-gold-300/40 rounded-xl p-4 text-xs text-gold-700 leading-relaxed">
-          <span class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><circle cx="12" cy="8" r="0.9" fill="currentColor" stroke="none"/></svg></span>
-          هذه اللوحة تعمل حالياً بتخزين مؤقت داخل الصفحة (بدون قاعدة بيانات) بانتظار ربطها بالمصدر الجديد في
-          الخطوة القادمة. أي صورة تُرفع تُضغَط وتُصغَّر تلقائياً على الجهاز قبل الحفظ لتبقى دائماً صغيرة الحجم.
+          <div class="mt-4 bg-gold-100/40 border border-gold-300/40 rounded-xl p-4 text-xs text-gold-700 leading-relaxed">
+            <span class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><circle cx="12" cy="8" r="0.9" fill="currentColor" stroke="none"/></svg></span>
+            أي تغيير للأسعار هنا ينعكس فورياً في المنيو التفاعلي وفي جميع الفواتير المطبوعة لاحقاً.
+          </div>
+        </div>
+
+        <!-- Items list -->
+        <div>
+          <h3 class="font-display text-xl mb-3 text-[#3B2A17]">عناصر القائمة والتعديل السريع</h3>
+          <div class="mb-3">
+            <select id="adminCategoryFilter" class="w-full sm:w-64 rounded-lg border border-gold-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-gold-400"></select>
+          </div>
+          <div id="adminItemsList" class="space-y-2 max-h-[520px] overflow-y-auto pe-1"></div>
         </div>
       </div>
 
-      <!-- Items list -->
-      <div>
-        <h3 class="font-display text-xl mb-3 text-[#3B2A17]">عناصر القائمة</h3>
-        <div class="mb-3">
-          <select id="adminCategoryFilter" class="w-full sm:w-64 rounded-lg border border-gold-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-gold-400"></select>
+      <!-- TAB 2: LIVE ORDERS -->
+      <div id="tabContentOrders" class="js-hidden">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-display text-xl text-[#3B2A17]">الطلبات الحية المباشرة</h3>
+          <button id="clearCompletedOrdersBtn" class="text-xs text-gold-700 hover:text-gold-500 border border-gold-300/40 px-3 py-1.5 rounded-lg">
+            مسح الطلبات المكتملة
+          </button>
         </div>
-        <div id="adminItemsList" class="space-y-2 max-h-[520px] overflow-y-auto pe-1"></div>
+        <div id="liveOrdersList" class="space-y-4 max-h-[550px] overflow-y-auto pe-1">
+          <!-- Live orders load here -->
+        </div>
       </div>
     </div>
   </div>
 </div>
+
+<!-- =========================================================
+     PRINT CONTAINER (THERMAL RECEIPT 80MM)
+========================================================= -->
+<div id="printable-receipt"></div>
 
 <!-- =========================================================
      TOAST
@@ -458,20 +551,9 @@
 
 <script>
 /* =====================================================================
-   DYLAN CAFE — DIGITAL MENU
-   -----------------------------------------------------------------
-   DATA / BACKEND LAYER — currently a local, in-memory placeholder.
-   The old Firebase/Firestore integration has been fully removed and
-   the old seed menu (categories + items) has been cleared. Everything
-   menu-related still goes through the MenuAPI object below, so the
-   next step only needs to swap MenuAPI's internals for a real backend
-   without touching any call site in this file.
+   DYLAN CAFE — DIGITAL MENU & LIVE RECEIPT SYSTEM
 ===================================================================== */
 
-// Inline SVG icon set — used instead of an icon font so icons never
-// break due to a blocked/slow CDN. Each entry is the inner markup of
-// an <svg viewBox="0 0 24 24"> (stroke styling comes from the shared
-// .icon CSS class).
 const ICONS = {
   cake:      '<path d="M4 20h16v-6a4 4 0 00-4-4H8a4 4 0 00-4 4v6z"/><path d="M9 10V6M12 10V6M15 10V6"/><circle cx="9" cy="4.5" r="0.8" fill="currentColor" stroke="none"/><circle cx="12" cy="4.5" r="0.8" fill="currentColor" stroke="none"/><circle cx="15" cy="4.5" r="0.8" fill="currentColor" stroke="none"/>',
   juice:     '<path d="M7 4h10l-1.2 14a2 2 0 01-2 1.8h-3.6a2 2 0 01-2-1.8L7 4z"/><path d="M7.5 8h9"/><path d="M14.5 2l2 3.5"/>',
@@ -486,17 +568,16 @@ const ICONS = {
   bag:       '<path d="M6 8h12l-1 12a2 2 0 01-2 2H9a2 2 0 01-2-2L6 8z"/><path d="M9 8V6a3 3 0 016 0v2"/>',
   cold:      '<path d="M6 3h12l-1.2 16a2 2 0 01-2 1.8h-5.6a2 2 0 01-2-1.8L6 3z"/><path d="M6.5 8h11"/><path d="M9 11l1.5 1.5M9 12.5L10.5 11M14 14l1.5 1.5M14 15.5L15.5 14"/>',
   icecream:  '<path d="M12 2a4 4 0 014 4 4 4 0 01-4 4 4 4 0 01-4-4 4 4 0 014-4z"/><path d="M8.5 9.5a3.5 3.5 0 007 0"/><path d="M9 11l3 10 3-10"/>',
+  print:     '<path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><path d="M6 14h12v8H6z"/>',
+  check:     '<path d="M20 6L9 17l-5-5"/>'
 };
 function icon(name, cls = ''){
   return `<span class="icon ${cls}"><svg viewBox="0 0 24 24">${ICONS[name] || ''}</svg></span>`;
 }
 
 const CONFIG = {
-  // Cafe name in lowercase is the admin password, per requirements.
   ADMIN_PASSWORD: 'dylancafe',
-  // Number of tables shown in the table-number dropdown (1..N).
   TABLE_COUNT: 35,
-  // Contact numbers shown in the menu footer.
   CONTACT_NUMBERS: ['0986685983', '0998324421'],
 };
 
@@ -507,7 +588,6 @@ const CATEGORIES = [
 ];
 
 let MENU_ITEMS = [
-  // ---- الأفطار ----
   { id: 'item-1',  name: 'مأمونية حلبية',        price: 400, category: 'breakfast', image: '' },
   { id: 'item-2',  name: 'مرتديلا',               price: 200, category: 'breakfast', image: '' },
   { id: 'item-3',  name: 'بيض',                   price: 200, category: 'breakfast', image: '' },
@@ -521,8 +601,6 @@ let MENU_ITEMS = [
   { id: 'item-11', name: 'جبنة مسنرة',            price: 200, category: 'breakfast', image: '' },
   { id: 'item-12', name: 'مربيات بأنواعها',       price: 200, category: 'breakfast', image: '' },
   { id: 'item-13', name: 'زعتر',                  price: 100, category: 'breakfast', image: '' },
-
-  // ---- المشاريب الساخنة ----
   { id: 'item-14', name: 'شاي',                   price: 100, category: 'hot-drinks', image: '' },
   { id: 'item-15', name: 'قهوة',                  price: 100, category: 'hot-drinks', image: '' },
   { id: 'item-16', name: '3 × 1',                 price: 150, category: 'hot-drinks', image: '' },
@@ -531,21 +609,16 @@ let MENU_ITEMS = [
   { id: 'item-19', name: 'كابتشينو',              price: 200, category: 'hot-drinks', image: '' },
   { id: 'item-20', name: 'زهورات',                price: 100, category: 'hot-drinks', image: '' },
   { id: 'item-21', name: 'كمون وليمون',           price: 100, category: 'hot-drinks', image: '' },
-
-  // ---- المشاريب الباردة ----
   { id: 'item-22', name: 'غازية بكل أنواعها',     price: 150, category: 'cold-drinks', image: '' },
   { id: 'item-23', name: 'سلس طبيعي بأنواعه',      price: 150, category: 'cold-drinks', image: '' },
   { id: 'item-24', name: 'كوكتيلات فريش',          price: 250, category: 'cold-drinks', image: '' },
 ];
 let nextLocalItemId = 25;
 
-/* ---------------------------------------------------------------
-   MenuAPI — local, in-memory placeholder (no external database).
-   This is a temporary data layer so the UI keeps working while a
-   new backend is connected in the next step. Every call site in
-   this file already `await`s these methods, so swapping the
-   internals later won't require touching the rest of the code.
------------------------------------------------------------------- */
+// Global array for live incoming orders
+let LIVE_ORDERS = [];
+let nextOrderId = 1001;
+
 const MenuAPI = {
   async getItems() {
     return MENU_ITEMS;
@@ -564,11 +637,14 @@ const MenuAPI = {
     MENU_ITEMS = MENU_ITEMS.filter(i => i.id !== id);
     return true;
   },
-  // Order submission hook — placeholder only. The old WhatsApp
-  // deep-link checkout has been removed; the next step should
-  // replace this with the new order-submission flow.
   async submitOrder(order) {
-    console.log('Order ready for backend persistence:', order);
+    const fullOrder = {
+      id: '#' + (nextOrderId++),
+      status: 'pending', // 'pending' | 'completed'
+      ...order
+    };
+    LIVE_ORDERS.unshift(fullOrder);
+    renderLiveOrders();
     return true;
   },
 };
@@ -600,9 +676,7 @@ function escapeHtml(str){
 }
 
 /* ---------------------------------------------------------------
-   TABLE NUMBER — chosen inside the cart, right before checkout.
-   The customer can browse the menu freely and only needs to pick a
-   table when they're ready to send the order.
+   TABLE SELECTION & INITIALIZATION
 ------------------------------------------------------------------ */
 const cartTableInput = document.getElementById('cartTableInput');
 const cartTableError = document.getElementById('cartTableError');
@@ -616,13 +690,12 @@ function populateTableOptions(){
 }
 populateTableOptions();
 
-// Clear the inline error as soon as the customer picks a value.
 cartTableInput.addEventListener('change', () => {
   if (cartTableInput.value) cartTableError.classList.add('js-hidden');
 });
 
 /* ---------------------------------------------------------------
-   HAMBURGER MENU
+   HAMBURGER NAVIGATION
 ------------------------------------------------------------------ */
 const hamburgerBtn = document.getElementById('hamburgerBtn');
 const hamburgerMenu = document.getElementById('hamburgerMenu');
@@ -638,7 +711,7 @@ document.addEventListener('click', (e) => {
 });
 
 /* ---------------------------------------------------------------
-   CATEGORY NAVIGATION + MENU RENDERING
+   CATEGORY NAVIGATION & MENU DISPLAY
 ------------------------------------------------------------------ */
 const categoryNav = document.getElementById('categoryNav');
 const menuSections = document.getElementById('menuSections');
@@ -710,7 +783,7 @@ async function renderMenu(){
 }
 
 /* ---------------------------------------------------------------
-   CART
+   SHOPPING CART
 ------------------------------------------------------------------ */
 const cartOverlay = document.getElementById('cartOverlay');
 const cartDrawer = document.getElementById('cartDrawer');
@@ -719,159 +792,83 @@ const cartTotalEl = document.getElementById('cartTotal');
 const cartCountEl = document.getElementById('cartCount');
 const checkoutBtn = document.getElementById('checkoutBtn');
 
-async function addToCart(itemId){
-  cart[itemId] = (cart[itemId] || 0) + 1;
-  await renderCart();
-  showToast('تمت الإضافة إلى السلة');
-}
+async function renderCart() {
+    const cart = await MenuAPI.getCart();
+    const items = await MenuAPI.getItems();
 
-function openCart(){
-  cartOverlay.classList.remove('js-hidden');
-  cartDrawer.style.transform = 'translateX(0)';
-}
-function closeCart(){
-  cartOverlay.classList.add('js-hidden');
-  cartDrawer.style.transform = 'translateX(-100%)';
-}
+    let total = 0;
+    let count = 0;
 
-document.getElementById('cartBtn').addEventListener('click', openCart);
-document.getElementById('closeCartBtn').addEventListener('click', closeCart);
-cartOverlay.addEventListener('click', closeCart);
+    if (cart.length === 0) {
+        cartItemsEl.innerHTML = '<p class="text-center text-gold-600 py-8">السلة فارغة</p>';
+    } else {
+        cartItemsEl.innerHTML = cart.map(cartItem => {
+            const item = items.find(i => i.id === cartItem.id);
+            if (!item) return '';
+            const itemTotal = item.price * cartItem.quantity;
+            total += itemTotal;
+            count += cartItem.quantity;
 
-async function renderCart(){
-  const items = await MenuAPI.getItems();
-  const byId = Object.fromEntries(items.map(i => [i.id, i]));
-  const entries = Object.entries(cart).filter(([, qty]) => qty > 0);
+            return `
+                <div class="flex items-center gap-3 bg-white/50 border border-gold-300/50 rounded-xl p-3">
+                    <div class="flex-1 min-w-0">
+                        <p class="font-semibold text-[#3B2A17] truncate">${escapeHtml(item.name)}</p>
+                        <p class="text-xs text-gold-600">${formatPrice(item.price)} × ${cartItem.quantity}</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button data-dec="${item.id}" class="w-7 h-7 rounded-full border border-gold-300 flex items-center justify-center text-xs">-</button>
+                        <span class="text-sm font-semibold">${cartItem.quantity}</span>
+                        <button data-inc="${item.id}" class="w-7 h-7 rounded-full border border-gold-300 flex items-center justify-center text-xs">+</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
 
-  let total = 0;
-  let count = 0;
-
-  if (entries.length === 0) {
-    cartItemsEl.innerHTML = `
-      <div class="h-full flex flex-col items-center justify-center text-center text-gold-500 py-16">
-        ${icon('bag', 'text-4xl mb-3')}
-        <p class="text-sm">سلتك فارغة حتى الآن</p>
-      </div>`;
-  } else {
-    cartItemsEl.innerHTML = entries.map(([id, qty]) => {
-      const item = byId[id];
-      if (!item) return '';
-      const lineTotal = item.price * qty;
-      total += lineTotal;
-      count += qty;
-      return `
-        <div class="flex items-center gap-3 bg-white/50 border border-gold-300/30 rounded-xl p-3">
-          <div class="flex-1">
-            <p class="font-semibold text-[#3B2A17]">${escapeHtml(item.name)}</p>
-            <p class="text-xs text-gold-600">${formatPrice(item.price)} ل.س × ${qty} = ${formatPrice(lineTotal)} ل.س</p>
-          </div>
-          <div class="flex items-center gap-2">
-            <button data-dec="${id}" class="w-7 h-7 rounded-full border border-gold-300 flex items-center justify-center hover:bg-gold-100/60">-</button>
-            <span class="w-5 text-center text-sm">${qty}</span>
-            <button data-inc="${id}" class="w-7 h-7 rounded-full border border-gold-300 flex items-center justify-center hover:bg-gold-100/60">+</button>
-          </div>
-        </div>`;
-    }).join('');
-  }
-
-  cartTotalEl.textContent = formatPrice(total);
-
-  if (count > 0) {
+    cartTotalEl.textContent = formatPrice(total);
     cartCountEl.textContent = count;
-    cartCountEl.classList.remove('js-hidden');
-  } else {
-    cartCountEl.classList.add('js-hidden');
-  }
 
-  checkoutBtn.disabled = entries.length === 0;
-
-  cartItemsEl.querySelectorAll('[data-inc]').forEach(btn =>
-    btn.addEventListener('click', () => { cart[btn.dataset.inc]++; renderCart(); }));
-  cartItemsEl.querySelectorAll('[data-dec]').forEach(btn =>
-    btn.addEventListener('click', () => {
-      const id = btn.dataset.dec;
-      cart[id] = Math.max(0, (cart[id] || 0) - 1);
-      renderCart();
-    }));
+    cartItemsEl.querySelectorAll('[data-inc]').forEach(btn => {
+        btn.addEventListener('click', () => addToCart(btn.dataset.inc));
+    });
+    cartItemsEl.querySelectorAll('[data-dec]').forEach(btn => {
+        btn.addEventListener('click', () => removeFromCart(btn.dataset.dec));
+    });
 }
 
-/* ---------------------------------------------------------------
-   CHECKOUT
-   The old WhatsApp deep-link submission has been removed. This
-   handler now only validates the cart/table and hands the order to
-   MenuAPI.submitOrder — the next step should implement how the
-   order actually gets delivered (new backend, messaging channel, etc).
------------------------------------------------------------------- */
-checkoutBtn.addEventListener('click', async () => {
-  const items = await MenuAPI.getItems();
-  const byId = Object.fromEntries(items.map(i => [i.id, i]));
-  const entries = Object.entries(cart).filter(([, qty]) => qty > 0);
-  if (entries.length === 0) return;
+async function addToCart(id) {
+    let cart = await MenuAPI.getCart();
+    const existing = cart.find(i => i.id === id);
+    if (existing) {
+        existing.quantity += 1;
+    } else {
+        cart.push({ id, quantity: 1 });
+    }
+    await MenuAPI.saveCart(cart);
+    await renderCart();
+    showToast('تمت الإضافة للسلة');
+}
 
-  const tableNumber = cartTableInput.value.trim();
-  if (!tableNumber) {
-    cartTableError.classList.remove('js-hidden');
-    cartTableInput.focus();
-    return;
-  }
-  cartTableError.classList.add('js-hidden');
+async function removeFromCart(id) {
+    let cart = await MenuAPI.getCart();
+    const existing = cart.find(i => i.id === id);
+    if (existing) {
+        if (existing.quantity > 1) {
+            existing.quantity -= 1;
+        } else {
+            cart = cart.filter(i => i.id !== id);
+        }
+    }
+    await MenuAPI.saveCart(cart);
+    await renderCart();
+}
 
-  let total = 0;
-  const orderItems = entries.map(([id, qty]) => {
-    const item = byId[id];
-    total += item.price * qty;
-    return { id, name: item.name, price: item.price, qty };
-  });
+/* -------------------------------------------------------------------------- */
+/* ADMIN PANEL                                                                */
+/* -------------------------------------------------------------------------- */
 
-  await MenuAPI.submitOrder({
-    table: tableNumber,
-    items: orderItems,
-    total,
-    createdAt: new Date().toISOString(),
-  });
-
-  cart = {};
-  cartTableInput.value = '';
-  await renderCart();
-  closeCart();
-  showToast('تم إرسال الطلب');
-});
-
-/* ---------------------------------------------------------------
-   ADMIN — LOGIN
------------------------------------------------------------------- */
-const adminLoginModal = document.getElementById('adminLoginModal');
-const adminLoginForm = document.getElementById('adminLoginForm');
-const adminPasswordInput = document.getElementById('adminPasswordInput');
-const adminError = document.getElementById('adminError');
-const adminPanel = document.getElementById('adminPanel');
-
-document.getElementById('adminMenuBtn').addEventListener('click', () => {
-  hamburgerMenu.classList.add('js-hidden');
-  adminPasswordInput.value = '';
-  adminError.classList.add('js-hidden');
-  adminLoginModal.classList.remove('js-hidden');
-  adminPasswordInput.focus();
-});
-document.getElementById('adminCancelBtn').addEventListener('click', () => {
-  adminLoginModal.classList.add('js-hidden');
-});
-adminLoginForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  if (adminPasswordInput.value.trim() === CONFIG.ADMIN_PASSWORD) {
-    adminLoginModal.classList.add('js-hidden');
-    await openAdminPanel();
-  } else {
-    adminError.classList.remove('js-hidden');
-  }
-});
-document.getElementById('closeAdminBtn').addEventListener('click', () => {
-  adminPanel.classList.add('js-hidden');
-});
-
-/* ---------------------------------------------------------------
-   ADMIN — DASHBOARD (Add / Edit / Delete)
------------------------------------------------------------------- */
+const adminItemList = document.getElementById('adminItemList');
+const adminCategoryFilter = document.getElementById('adminCategoryFilter');
 const itemForm = document.getElementById('itemForm');
 const itemFormTitle = document.getElementById('itemFormTitle');
 const itemFormId = document.getElementById('itemFormId');
@@ -879,215 +876,112 @@ const itemFormName = document.getElementById('itemFormName');
 const itemFormPrice = document.getElementById('itemFormPrice');
 const itemFormCategory = document.getElementById('itemFormCategory');
 const itemFormImage = document.getElementById('itemFormImage');
-const itemFormImageFile = document.getElementById('itemFormImageFile');
-const itemFormImageLabel = document.getElementById('itemFormImageLabel');
-const itemFormImagePreviewWrap = document.getElementById('itemFormImagePreviewWrap');
-const itemFormImagePreview = document.getElementById('itemFormImagePreview');
-const itemFormImageRemoveBtn = document.getElementById('itemFormImageRemoveBtn');
-const adminCategoryFilter = document.getElementById('adminCategoryFilter');
-const adminItemsList = document.getElementById('adminItemsList');
 
-function setImagePreview(dataUrl, fileName){
-  itemFormImage.value = dataUrl || '';
-  if (dataUrl) {
-    itemFormImagePreview.src = dataUrl;
-    itemFormImagePreviewWrap.classList.remove('js-hidden');
-    itemFormImageLabel.textContent = fileName || 'تم اختيار صورة';
-  } else {
-    itemFormImagePreviewWrap.classList.add('js-hidden');
-    itemFormImagePreview.src = '';
-    itemFormImageLabel.textContent = 'اضغط لرفع صورة (JPG / PNG)';
-  }
+let editingItemId = null;
+
+async function renderAdminItemList() {
+    if (!adminItemList) return;
+    const items = await MenuAPI.getItems();
+    const filter = adminCategoryFilter ? adminCategoryFilter.value : 'all';
+    const filtered = filter === 'all' ? items : items.filter(i => i.category === filter);
+
+    if (filtered.length === 0) {
+        adminItemList.innerHTML = '<p class="text-xs text-gold-600 text-center py-8">لا توجد عناصر</p>';
+        return;
+    }
+
+    adminItemList.innerHTML = filtered.map(item => `
+        <div class="flex items-center gap-3 bg-white/50 border border-gold-300/50 rounded-xl p-3">
+            <div class="w-12 h-12 rounded-lg overflow-hidden shrink-0 img-placeholder flex items-center justify-center">
+                ${item.image ? `<img src="${escapeHtml(item.image)}" class="w-full h-full object-cover" alt="" />` : icon('image', 'text-xs')}
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="font-semibold text-[#3B2A17] truncate">${escapeHtml(item.name)}</p>
+                <p class="text-xs text-gold-600">${formatPrice(item.price)}</p>
+            </div>
+            <button data-edit="${item.id}" class="w-8 h-8 rounded-full border border-gold-300 flex items-center justify-center text-gold-700">
+                ${icon('pen', 'text-xs')}
+            </button>
+            <button data-del="${item.id}" class="w-8 h-8 rounded-full border border-red-300 text-red-600 flex items-center justify-center">
+                ${icon('trash', 'text-xs')}
+            </button>
+        </div>
+    `).join('');
+
+    adminItemList.querySelectorAll('[data-edit]').forEach(btn => {
+        btn.addEventListener('click', () => startEditItem(btn.dataset.edit));
+    });
+    adminItemList.querySelectorAll('[data-del]').forEach(btn => {
+        btn.addEventListener('click', () => deleteItemConfirm(btn.dataset.del));
+    });
 }
 
-// Resizes + compresses an uploaded image on-device before it is stored
-// as a Base64 string, so a single large photo (e.g. a raw phone camera
-// shot of several MB) stays small and the menu page keeps loading fast
-// as more items are added. Caps the longest side at MAX_DIMENSION and re-encodes as JPEG,
-// stepping the quality down until the result fits under MAX_BYTES.
-function compressImageFile(file, { maxDimension = 1000, maxBytes = 220 * 1024 } = {}) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    const objectUrl = URL.createObjectURL(file);
-    img.onload = () => {
-      URL.revokeObjectURL(objectUrl);
-      let { width, height } = img;
-      if (width > height && width > maxDimension) {
-        height = Math.round(height * (maxDimension / width));
-        width = maxDimension;
-      } else if (height > maxDimension) {
-        width = Math.round(width * (maxDimension / height));
-        height = maxDimension;
-      }
-      const canvas = document.createElement('canvas');
-      canvas.width = width;
-      canvas.height = height;
-      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-
-      let quality = 0.82;
-      let dataUrl = canvas.toDataURL('image/jpeg', quality);
-      // Rough Base64 -> byte size estimate; step quality down until it fits.
-      const estimateBytes = str => Math.round(str.length * 0.75);
-      while (estimateBytes(dataUrl) > maxBytes && quality > 0.35) {
-        quality -= 0.1;
-        dataUrl = canvas.toDataURL('image/jpeg', quality);
-      }
-      resolve(dataUrl);
-    };
-    img.onerror = () => {
-      URL.revokeObjectURL(objectUrl);
-      reject(new Error('تعذّرت قراءة الصورة'));
-    };
-    img.src = objectUrl;
-  });
+async function startEditItem(id) {
+    const items = await MenuAPI.getItems();
+    const item = items.find(i => i.id === id);
+    if (!item) return;
+    editingItemId = id;
+    itemFormTitle.textContent = 'تعديل: ' + item.name;
+    itemFormId.value = item.id;
+    itemFormName.value = item.name;
+    itemFormPrice.value = item.price;
+    itemFormCategory.value = item.category;
+    itemFormImage.value = item.image || '';
+    itemFormName.focus();
 }
 
-// Reads the chosen file, compresses it (see compressImageFile above), and
-// stores the resulting small Base64 data URL so it can be previewed and
-// saved immediately without any backend. When a real backend/storage
-// service is connected later, replace this with an upload call and
-// store the returned URL in `image` instead of the Base64 string.
-itemFormImageFile.addEventListener('change', async () => {
-  const file = itemFormImageFile.files && itemFormImageFile.files[0];
-  if (!file) return;
-  if (!file.type.startsWith('image/')) {
-    showToast('الرجاء اختيار ملف صورة صالح');
-    itemFormImageFile.value = '';
-    return;
-  }
-  try {
-    itemFormImageLabel.textContent = 'جارٍ تجهيز الصورة...';
-    const compressedDataUrl = await compressImageFile(file);
-    setImagePreview(compressedDataUrl, file.name);
-  } catch (err) {
-    showToast('تعذّر معالجة الصورة، حاولي صورة أخرى');
-    itemFormImageFile.value = '';
-    setImagePreview('');
-  }
-});
-
-itemFormImageRemoveBtn.addEventListener('click', () => {
-  itemFormImageFile.value = '';
-  setImagePreview('');
-});
-
-function populateCategorySelects(){
-  const opts = CATEGORIES.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-  itemFormCategory.innerHTML = opts;
-  adminCategoryFilter.innerHTML = `<option value="all">كل التصنيفات</option>` + opts;
+async function deleteItemConfirm(id) {
+    const items = await MenuAPI.getItems();
+    const item = items.find(i => i.id === id);
+    if (!item) return;
+    if (!confirm(`هل أنت تأكد من حذف "${item.name}"؟`)) return;
+    await MenuAPI.deleteItem(id);
+    await renderAdminItemList();
+    await renderMenu();
+    showToast('تم حذف العنصر');
 }
 
-async function openAdminPanel(){
-  populateCategorySelects();
-  resetItemForm();
-  await renderAdminItemsList();
-  adminPanel.classList.remove('js-hidden');
+if (itemForm) {
+    itemForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const payload = {
+            name: itemFormName.value.trim(),
+            price: Number(itemFormPrice.value),
+            category: itemFormCategory.value,
+            image: itemFormImage.value
+        };
+
+        if (!payload.name || payload.price <= 0) return;
+
+        if (editingItemId) {
+            await MenuAPI.updateItem(editingItemId, payload);
+            showToast('تم تحديث العنصر');
+        } else {
+            await MenuAPI.addItem(payload);
+            showToast('تمت إضافة العنصر');
+        }
+
+        resetItemForm();
+        await renderAdminItemList();
+        await renderMenu();
+    });
 }
 
-function resetItemForm(){
-  editingItemId = null;
-  itemFormTitle.textContent = 'إضافة عنصر جديد';
-  itemFormId.value = '';
-  itemForm.reset();
-  itemFormImageFile.value = '';
-  setImagePreview('');
-}
-document.getElementById('itemFormResetBtn').addEventListener('click', resetItemForm);
-
-adminCategoryFilter.addEventListener('change', renderAdminItemsList);
-
-async function renderAdminItemsList(){
-  const items = await MenuAPI.getItems();
-  const filter = adminCategoryFilter.value || 'all';
-  const filtered = filter === 'all' ? items : items.filter(i => i.category === filter);
-  const catName = id => CATEGORIES.find(c => c.id === id)?.name || id;
-
-  if (filtered.length === 0) {
-    adminItemsList.innerHTML = `<p class="text-sm text-gold-600 text-center py-8">لا توجد عناصر</p>`;
-    return;
-  }
-
-  adminItemsList.innerHTML = filtered.map(item => `
-    <div class="flex items-center gap-3 bg-white/50 border border-gold-300/30 rounded-xl p-3">
-      <div class="w-16 h-12 rounded-lg overflow-hidden shrink-0 img-placeholder flex items-center justify-center">
-        ${item.image ? `<img src="${escapeHtml(item.image)}" class="w-full h-full object-cover">` : icon('image', 'text-gold-500')}
-      </div>
-      <div class="flex-1 min-w-0">
-        <p class="font-semibold text-[#3B2A17] truncate">${escapeHtml(item.name)}</p>
-        <p class="text-xs text-gold-600">${catName(item.category)} · ${formatPrice(item.price)} ل.س</p>
-      </div>
-      <button data-edit="${item.id}" class="w-8 h-8 rounded-full border border-gold-300 flex items-center justify-center hover:bg-gold-100/60" title="تعديل">
-        ${icon('pen', 'text-xs')}
-      </button>
-      <button data-del="${item.id}" class="w-8 h-8 rounded-full border border-red-300 text-red-600 flex items-center justify-center hover:bg-red-50" title="حذف">
-        ${icon('trash', 'text-xs')}
-      </button>
-    </div>
-  `).join('');
-
-  adminItemsList.querySelectorAll('[data-edit]').forEach(btn =>
-    btn.addEventListener('click', () => startEditItem(btn.dataset.edit)));
-  adminItemsList.querySelectorAll('[data-del]').forEach(btn =>
-    btn.addEventListener('click', () => deleteItemConfirm(btn.dataset.del)));
+function resetItemForm() {
+    editingItemId = null;
+    if (itemForm) itemForm.reset();
+    if (itemFormTitle) itemFormTitle.textContent = 'إضافة عنصر جديد';
 }
 
-async function startEditItem(id){
-  const items = await MenuAPI.getItems();
-  const item = items.find(i => i.id === id);
-  if (!item) return;
-  editingItemId = id;
-  itemFormTitle.textContent = 'تعديل: ' + item.name;
-  itemFormId.value = item.id;
-  itemFormName.value = item.name;
-  itemFormPrice.value = item.price;
-  itemFormCategory.value = item.category;
-  itemFormImageFile.value = '';
-  setImagePreview(item.image || '');
-  itemFormName.focus();
+
+async function init() {
+    renderCategoryNav();
+    await renderMenu();
+    await renderCart();
+    await renderAdminItemList();
 }
 
-async function deleteItemConfirm(id){
-  const items = await MenuAPI.getItems();
-  const item = items.find(i => i.id === id);
-  if (!item) return;
-  if (!confirm(`هل تريد حذف "${item.name}" من القائمة؟`)) return;
-  await MenuAPI.deleteItem(id);
-  await renderAdminItemsList();
-  await renderMenu();
-  showToast('تم حذف الصنف');
-}
-
-itemForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const payload = {
-    name: itemFormName.value.trim(),
-    price: Number(itemFormPrice.value),
-    category: itemFormCategory.value,
-    image: itemFormImage.value,
-  };
-  if (!payload.name || !(payload.price >= 0)) return;
-
-  if (editingItemId) {
-    await MenuAPI.updateItem(editingItemId, payload);
-    showToast('تم تحديث الصنف');
-  } else {
-    await MenuAPI.addItem(payload);
-    showToast('تمت إضافة الصنف');
-  }
-
-  resetItemForm();
-  await renderAdminItemsList();
-  await renderMenu();
-});
-
-/* ---------------------------------------------------------------
-   INIT
------------------------------------------------------------------- */
-(async function init(){
-  renderCategoryNav();
-  await renderMenu();
-  await renderCart();
-})();
+init();
 </script>
 </body>
 </html>
