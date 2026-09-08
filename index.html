@@ -369,21 +369,58 @@
 </div>
 
 <!-- =========================================================
-     ADMIN — DASHBOARD MODAL
+     ADMIN — FULL PAGE DASHBOARD
 ========================================================= -->
-<div id="adminPanel" class="js-hidden fixed inset-0 z-[100] p-3 sm:p-6 modal-backdrop overflow-y-auto">
-  <div class="modal-panel w-full max-w-5xl mx-auto rounded-2xl shadow-gold my-4 fade-in">
-    <div class="flex items-center justify-between px-6 py-4 border-b border-gold-300/40">
-      <h2 class="font-display text-2xl sm:text-3xl text-[#3B2A17] flex items-center gap-2">
-        <span class="icon text-gold-500"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V6l7-3z"/><path d="M9.3 12l1.8 1.8L14.7 10"/></svg></span>
-        لوحة تحكم Dylan Cafe
-      </h2>
-      <button id="closeAdminBtn" class="w-9 h-9 rounded-full hover:bg-gold-100/60 flex items-center justify-center">
-        <span class="icon"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></span>
+<div id="adminPanel" class="js-hidden fixed inset-0 z-[100] overflow-y-auto" style="background:var(--dl-bg-0,#0A0806);">
+
+  <!-- Admin Header -->
+  <div class="sticky top-0 z-10 border-b border-gold-300/40 backdrop-blur" style="background:rgba(10,8,6,0.95);">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="monogram !w-9 !h-9 !text-sm">D</div>
+        <div>
+          <h2 class="font-display text-xl sm:text-2xl text-[#3B2A17] leading-none">لوحة تحكم Dylan Cafe</h2>
+          <p class="text-[11px] text-gold-600">Admin Dashboard</p>
+        </div>
+      </div>
+      <button id="closeAdminBtn" class="flex items-center gap-2 rounded-xl border border-gold-300/60 px-4 py-2 text-sm hover:bg-gold-100/40 transition text-gold-600">
+        <span class="icon"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></span>
+        رجوع للقائمة
       </button>
     </div>
 
-    <div class="p-6 grid lg:grid-cols-[1.1fr_1.4fr] gap-6">
+    <!-- Admin Tabs -->
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 pb-0 flex gap-1">
+      <button id="adminTabOrders" class="admin-tab active px-5 py-2.5 text-sm font-semibold border-b-2 border-gold-500 text-gold-500 flex items-center gap-2">
+        <span class="icon"><svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg></span>
+        الطلبات
+        <span id="ordersTabBadge" class="js-hidden cart-badge bg-[#6B2B2B] text-white rounded-full flex items-center justify-center px-1 text-[10px]">0</span>
+      </button>
+      <button id="adminTabMenu" class="admin-tab px-5 py-2.5 text-sm font-semibold border-b-2 border-transparent text-gold-600 flex items-center gap-2 hover:text-gold-500 transition">
+        <span class="icon"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h7"/><path d="M15 15l5 5M18 17a3 3 0 10-6 0 3 3 0 006 0z"/></svg></span>
+        إدارة القائمة
+      </button>
+    </div>
+  </div>
+
+  <!-- TAB: ORDERS -->
+  <div id="adminTabOrdersContent" class="max-w-6xl mx-auto px-4 sm:px-6 py-6">
+    <div class="flex items-center justify-between mb-5">
+      <h3 class="font-display text-2xl text-[#3B2A17]">الطلبات الواردة</h3>
+      <button id="clearAllOrdersBtn" class="text-xs border border-red-300 text-red-600 rounded-lg px-3 py-1.5 hover:bg-red-50 transition">مسح كل الطلبات</button>
+    </div>
+    <div id="adminOrdersList" class="space-y-4">
+      <div class="text-center py-16 text-gold-600">
+        <span class="icon text-4xl mb-3 block"><svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg></span>
+        <p class="text-sm">لا توجد طلبات حتى الآن</p>
+        <p class="text-xs mt-1 text-gold-500">ستظهر هنا عند وصول طلبات الزبائن</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: MENU MANAGEMENT -->
+  <div id="adminTabMenuContent" class="js-hidden max-w-6xl mx-auto px-4 sm:px-6 py-6">
+    <div class="grid lg:grid-cols-[1.1fr_1.4fr] gap-6">
       <!-- Add / Edit item form -->
       <div>
         <h3 class="font-display text-xl mb-3 text-[#3B2A17]" id="itemFormTitle">إضافة عنصر جديد</h3>
@@ -427,8 +464,8 @@
 
         <div class="mt-4 bg-gold-100/40 border border-gold-300/40 rounded-xl p-4 text-xs text-gold-700 leading-relaxed">
           <span class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><circle cx="12" cy="8" r="0.9" fill="currentColor" stroke="none"/></svg></span>
-          هذه اللوحة تعمل حالياً بتخزين مؤقت داخل الصفحة (بدون قاعدة بيانات) بانتظار ربطها بالمصدر الجديد في
-          الخطوة القادمة. أي صورة تُرفع تُضغَط وتُصغَّر تلقائياً على الجهاز قبل الحفظ لتبقى دائماً صغيرة الحجم.
+          هذه اللوحة متصلة مباشرة بـ Firebase Firestore، وأي إضافة أو تعديل أو حذف تتم مزامنته
+          فوراً مع جميع الأجهزة المتصلة. أي صورة تُرفع تُضغَط وتُصغَّر تلقائياً على الجهاز قبل الحفظ لتبقى دائماً صغيرة الحجم.
         </div>
       </div>
 
@@ -438,11 +475,18 @@
         <div class="mb-3">
           <select id="adminCategoryFilter" class="w-full sm:w-64 rounded-lg border border-gold-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-gold-400"></select>
         </div>
-        <div id="adminItemsList" class="space-y-2 max-h-[520px] overflow-y-auto pe-1"></div>
+        <div id="adminItemsList" class="space-y-2 pe-1"></div>
       </div>
     </div>
   </div>
+
 </div>
+
+
+<!-- =========================================================
+     THERMAL PRINT AREA — populated dynamically before printing
+========================================================= -->
+<div id="thermalPrintArea" aria-hidden="true"></div>
 
 <!-- =========================================================
      TOAST
@@ -451,13 +495,172 @@
   تمت الإضافة إلى السلة
 </div>
 
+
+<style id="thermal-print-styles">
+  /* =========================================================
+     THERMAL RECEIPT — 80mm
+     Only the selected invoice is printed.
+  ========================================================= */
+  #thermalPrintArea{
+    display:none;
+  }
+
+  @media print{
+    @page{
+      size:80mm auto;
+      margin:0;
+    }
+
+    html, body{
+      width:80mm !important;
+      min-width:80mm !important;
+      margin:0 !important;
+      padding:0 !important;
+      background:#fff !important;
+      color:#000 !important;
+    }
+
+    body *{
+      visibility:hidden !important;
+    }
+
+    #thermalPrintArea,
+    #thermalPrintArea *{
+      visibility:visible !important;
+    }
+
+    #thermalPrintArea{
+      display:block !important;
+      position:absolute !important;
+      top:0 !important;
+      right:0 !important;
+      left:auto !important;
+      width:80mm !important;
+      max-width:80mm !important;
+      margin:0 !important;
+      padding:3mm 4mm 5mm !important;
+      box-sizing:border-box !important;
+      background:#fff !important;
+      color:#000 !important;
+      font-family:Arial, "Tahoma", sans-serif !important;
+      direction:rtl !important;
+      font-size:12px !important;
+      line-height:1.35 !important;
+    }
+
+    #thermalPrintArea .receipt-title{
+      font-size:19px !important;
+      font-weight:800 !important;
+      text-align:center !important;
+      margin:0 0 1mm !important;
+    }
+
+    #thermalPrintArea .receipt-subtitle{
+      font-size:10px !important;
+      text-align:center !important;
+      margin:0 0 2mm !important;
+    }
+
+    #thermalPrintArea .receipt-rule{
+      border-top:1px dashed #000 !important;
+      height:0 !important;
+      margin:2mm 0 !important;
+    }
+
+    #thermalPrintArea .receipt-meta{
+      display:flex !important;
+      justify-content:space-between !important;
+      gap:2mm !important;
+      margin:1mm 0 !important;
+      font-size:11px !important;
+    }
+
+    #thermalPrintArea .receipt-items{
+      width:100% !important;
+    }
+
+    #thermalPrintArea .receipt-item{
+      display:grid !important;
+      grid-template-columns:minmax(0,1fr) auto auto !important;
+      column-gap:2mm !important;
+      align-items:start !important;
+      margin:1.5mm 0 !important;
+    }
+
+    #thermalPrintArea .receipt-item-name{
+      min-width:0 !important;
+      overflow-wrap:anywhere !important;
+      text-align:right !important;
+      font-weight:600 !important;
+    }
+
+    #thermalPrintArea .receipt-qty{
+      white-space:nowrap !important;
+      text-align:center !important;
+    }
+
+    #thermalPrintArea .receipt-price{
+      white-space:nowrap !important;
+      text-align:left !important;
+      direction:rtl !important;
+    }
+
+    #thermalPrintArea .receipt-total{
+      display:flex !important;
+      justify-content:space-between !important;
+      gap:2mm !important;
+      font-size:15px !important;
+      font-weight:800 !important;
+      margin-top:2mm !important;
+    }
+
+    #thermalPrintArea .receipt-footer{
+      text-align:center !important;
+      font-size:10px !important;
+      margin-top:3mm !important;
+    }
+  }
+</style>
+
 <style>
   .no-scrollbar::-webkit-scrollbar{ display:none; }
   .no-scrollbar{ -ms-overflow-style:none; scrollbar-width:none; }
 </style>
 
-<script>
+<script type="module">
 /* =====================================================================
+   FIREBASE — DYLAN CAFE
+   Firebase project: dylan-cafe
+===================================================================== */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, getDocs, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDW-6NOeuOxwE4JtrYGWwWRYo2XrLlQ2Mg",
+  authDomain: "dylan-cafe.firebaseapp.com",
+  projectId: "dylan-cafe",
+  storageBucket: "dylan-cafe.firebasestorage.app",
+  messagingSenderId: "311935427402",
+  appId: "1:311935427402:web:e58f2ac2494da7c49c97b3"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// Make them available for the next Firebase/Firestore integration step.
+window.firebaseApp = app;
+window.db = db;
+
+/* =====================================================================
+   DYLAN CAFE — DIGITAL MENU
+   -----------------------------------------------------------------
+   DATA / BACKEND LAYER — currently a local, in-memory placeholder.
+   The old Firebase/Firestore integration has been fully removed and
+   the old seed menu (categories + items) has been cleared. Everything
+   menu-related still goes through the MenuAPI object below, so the
+   next step only needs to swap MenuAPI's internals for a real backend
+   without touching any call site in this file.
+===================================================================== */
    DYLAN CAFE — DIGITAL MENU
    -----------------------------------------------------------------
    DATA / BACKEND LAYER — currently a local, in-memory placeholder.
@@ -486,6 +689,7 @@ const ICONS = {
   bag:       '<path d="M6 8h12l-1 12a2 2 0 01-2 2H9a2 2 0 01-2-2L6 8z"/><path d="M9 8V6a3 3 0 016 0v2"/>',
   cold:      '<path d="M6 3h12l-1.2 16a2 2 0 01-2 1.8h-5.6a2 2 0 01-2-1.8L6 3z"/><path d="M6.5 8h11"/><path d="M9 11l1.5 1.5M9 12.5L10.5 11M14 14l1.5 1.5M14 15.5L15.5 14"/>',
   icecream:  '<path d="M12 2a4 4 0 014 4 4 4 0 01-4 4 4 4 0 01-4-4 4 4 0 014-4z"/><path d="M8.5 9.5a3.5 3.5 0 007 0"/><path d="M9 11l3 10 3-10"/>',
+  printer:   '<path d="M6 9V3h12v6"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><path d="M6 14h12v7H6z"/><path d="M18 12h.01"/>',
 };
 function icon(name, cls = ''){
   return `<span class="icon ${cls}"><svg viewBox="0 0 24 24">${ICONS[name] || ''}</svg></span>`;
@@ -506,71 +710,95 @@ const CATEGORIES = [
   { id: 'cold-drinks', name: 'المشاريب الباردة', icon: 'cold' },
 ];
 
-let MENU_ITEMS = [
-  // ---- الأفطار ----
-  { id: 'item-1',  name: 'مأمونية حلبية',        price: 400, category: 'breakfast', image: '' },
-  { id: 'item-2',  name: 'مرتديلا',               price: 200, category: 'breakfast', image: '' },
-  { id: 'item-3',  name: 'بيض',                   price: 200, category: 'breakfast', image: '' },
-  { id: 'item-4',  name: 'جبنة مشللة',            price: 200, category: 'breakfast', image: '' },
-  { id: 'item-5',  name: 'فلافل',                 price: 150, category: 'breakfast', image: '' },
-  { id: 'item-6',  name: 'مكدوس',                 price: 200, category: 'breakfast', image: '' },
-  { id: 'item-7',  name: 'عطون',                  price: 150, category: 'breakfast', image: '' },
-  { id: 'item-8',  name: 'حمص مع طحينة',          price: 200, category: 'breakfast', image: '' },
-  { id: 'item-9',  name: 'زيتون أخضر',            price: 150, category: 'breakfast', image: '' },
-  { id: 'item-10', name: 'عسل مع قشطة بلدية',     price: 400, category: 'breakfast', image: '' },
-  { id: 'item-11', name: 'جبنة مسنرة',            price: 200, category: 'breakfast', image: '' },
-  { id: 'item-12', name: 'مربيات بأنواعها',       price: 200, category: 'breakfast', image: '' },
-  { id: 'item-13', name: 'زعتر',                  price: 100, category: 'breakfast', image: '' },
-
-  // ---- المشاريب الساخنة ----
-  { id: 'item-14', name: 'شاي',                   price: 100, category: 'hot-drinks', image: '' },
-  { id: 'item-15', name: 'قهوة',                  price: 100, category: 'hot-drinks', image: '' },
-  { id: 'item-16', name: '3 × 1',                 price: 150, category: 'hot-drinks', image: '' },
-  { id: 'item-17', name: '2 × 1',                 price: 150, category: 'hot-drinks', image: '' },
-  { id: 'item-18', name: 'ميلو',                  price: 150, category: 'hot-drinks', image: '' },
-  { id: 'item-19', name: 'كابتشينو',              price: 200, category: 'hot-drinks', image: '' },
-  { id: 'item-20', name: 'زهورات',                price: 100, category: 'hot-drinks', image: '' },
-  { id: 'item-21', name: 'كمون وليمون',           price: 100, category: 'hot-drinks', image: '' },
-
-  // ---- المشاريب الباردة ----
-  { id: 'item-22', name: 'غازية بكل أنواعها',     price: 150, category: 'cold-drinks', image: '' },
-  { id: 'item-23', name: 'سلس طبيعي بأنواعه',      price: 150, category: 'cold-drinks', image: '' },
-  { id: 'item-24', name: 'كوكتيلات فريش',          price: 250, category: 'cold-drinks', image: '' },
-];
-let nextLocalItemId = 25;
+let MENU_ITEMS = [];
+let ORDERS = [];
+let unsubscribeMenu = null;
+let unsubscribeOrders = null;
 
 /* ---------------------------------------------------------------
-   MenuAPI — local, in-memory placeholder (no external database).
-   This is a temporary data layer so the UI keeps working while a
-   new backend is connected in the next step. Every call site in
-   this file already `await`s these methods, so swapping the
-   internals later won't require touching the rest of the code.
+   MenuAPI — Firebase Firestore real-time backend.
 ------------------------------------------------------------------ */
 const MenuAPI = {
-  async getItems() {
-    return MENU_ITEMS;
-  },
+  async getItems() { return MENU_ITEMS; },
+
   async addItem(item) {
-    const newItem = { id: 'item-' + (nextLocalItemId++), ...item };
-    MENU_ITEMS.push(newItem);
-    return newItem;
+    const payload = {
+      name: String(item.name || '').trim(),
+      price: Number(item.price || 0),
+      category: String(item.category || ''),
+      image: item.image || ''
+    };
+    const ref = await addDoc(collection(db, 'menu'), payload);
+    return { id: ref.id, ...payload };
   },
+
   async updateItem(id, patch) {
-    const idx = MENU_ITEMS.findIndex(i => i.id === id);
-    if (idx !== -1) MENU_ITEMS[idx] = { ...MENU_ITEMS[idx], ...patch };
-    return { id, ...patch };
+    const payload = {};
+    if (patch.name !== undefined) payload.name = String(patch.name).trim();
+    if (patch.price !== undefined) payload.price = Number(patch.price);
+    if (patch.category !== undefined) payload.category = String(patch.category);
+    if (patch.image !== undefined) payload.image = patch.image || '';
+    await updateDoc(doc(db, 'menu', id), payload);
+    return { id, ...payload };
   },
+
   async deleteItem(id) {
-    MENU_ITEMS = MENU_ITEMS.filter(i => i.id !== id);
+    await deleteDoc(doc(db, 'menu', id));
     return true;
   },
-  // Order submission hook — placeholder only. The old WhatsApp
-  // deep-link checkout has been removed; the next step should
-  // replace this with the new order-submission flow.
+
   async submitOrder(order) {
-    console.log('Order ready for backend persistence:', order);
-    return true;
+    const payload = {
+      table: String(order.table || ''),
+      items: Array.isArray(order.items) ? order.items : [],
+      total: Number(order.total || 0),
+      status: 'pending',
+      createdAt: serverTimestamp()
+    };
+    const ref = await addDoc(collection(db, 'orders'), payload);
+    return { id: ref.id, ...payload };
   },
+
+  async updateOrderStatus(id, status) {
+    if (!['pending', 'done'].includes(status)) throw new Error('Invalid order status');
+    await updateDoc(doc(db, 'orders', id), { status });
+  },
+
+  async deleteOrder(id) { await deleteDoc(doc(db, 'orders', id)); },
+
+  async clearAllOrders() {
+    const snapshot = await getDocs(collection(db, 'orders'));
+    await Promise.all(snapshot.docs.map(d => deleteDoc(d.ref)));
+  },
+
+  startMenuListener() {
+    if (unsubscribeMenu) unsubscribeMenu();
+    const menuQuery = query(collection(db, 'menu'), orderBy('name'));
+    unsubscribeMenu = onSnapshot(menuQuery, snapshot => {
+      MENU_ITEMS = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderCategoryNav();
+      renderMenu();
+      renderCart();
+      if (!adminPanel.classList.contains('js-hidden')) renderAdminItemsList();
+    }, error => {
+      console.error('Firestore menu listener error:', error);
+      showToast('تعذّر تحميل القائمة من Firebase');
+    });
+    return unsubscribeMenu;
+  },
+
+  startOrdersListener() {
+    if (unsubscribeOrders) unsubscribeOrders();
+    const ordersQuery = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
+    unsubscribeOrders = onSnapshot(ordersQuery, snapshot => {
+      ORDERS = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderAdminOrders();
+    }, error => {
+      console.error('Firestore orders listener error:', error);
+      showToast('تعذّر تحميل الطلبات من Firebase');
+    });
+    return unsubscribeOrders;
+  }
 };
 
 /* ---------------------------------------------------------------
@@ -827,14 +1055,13 @@ checkoutBtn.addEventListener('click', async () => {
     table: tableNumber,
     items: orderItems,
     total,
-    createdAt: new Date().toISOString(),
   });
 
   cart = {};
   cartTableInput.value = '';
   await renderCart();
   closeCart();
-  showToast('تم إرسال الطلب');
+  showToast('✓ تم إرسال طلبك — شكراً!');
 });
 
 /* ---------------------------------------------------------------
@@ -867,6 +1094,239 @@ adminLoginForm.addEventListener('submit', async (e) => {
 });
 document.getElementById('closeAdminBtn').addEventListener('click', () => {
   adminPanel.classList.add('js-hidden');
+  document.body.style.overflow = '';
+  if (unsubscribeOrders) {
+    unsubscribeOrders();
+    unsubscribeOrders = null;
+  }
+});
+
+/* ---------------------------------------------------------------
+   ADMIN — TAB SWITCHING
+------------------------------------------------------------------ */
+const adminTabOrdersBtn  = document.getElementById('adminTabOrders');
+const adminTabMenuBtn    = document.getElementById('adminTabMenu');
+const adminTabOrdersCont = document.getElementById('adminTabOrdersContent');
+const adminTabMenuCont   = document.getElementById('adminTabMenuContent');
+
+function switchAdminTab(tab) {
+  if (tab === 'orders') {
+    adminTabOrdersCont.classList.remove('js-hidden');
+    adminTabMenuCont.classList.add('js-hidden');
+    adminTabOrdersBtn.classList.add('border-gold-500', 'text-gold-500');
+    adminTabOrdersBtn.classList.remove('border-transparent', 'text-gold-600');
+    adminTabMenuBtn.classList.remove('border-gold-500', 'text-gold-500');
+    adminTabMenuBtn.classList.add('border-transparent', 'text-gold-600');
+  } else {
+    adminTabMenuCont.classList.remove('js-hidden');
+    adminTabOrdersCont.classList.add('js-hidden');
+    adminTabMenuBtn.classList.add('border-gold-500', 'text-gold-500');
+    adminTabMenuBtn.classList.remove('border-transparent', 'text-gold-600');
+    adminTabOrdersBtn.classList.remove('border-gold-500', 'text-gold-500');
+    adminTabOrdersBtn.classList.add('border-transparent', 'text-gold-600');
+  }
+}
+adminTabOrdersBtn.addEventListener('click', () => switchAdminTab('orders'));
+adminTabMenuBtn.addEventListener('click', () => switchAdminTab('menu'));
+
+/* ---------------------------------------------------------------
+   ADMIN — ORDERS RENDERING
+------------------------------------------------------------------ */
+const adminOrdersList  = document.getElementById('adminOrdersList');
+const ordersTabBadge   = document.getElementById('ordersTabBadge');
+
+function formatTime(value) {
+  if (!value) return 'الآن';
+  const d = typeof value?.toDate === 'function' ? value.toDate() : new Date(value);
+  if (Number.isNaN(d.getTime())) return '—';
+  return d.toLocaleTimeString('ar-SY', { hour: '2-digit', minute: '2-digit' });
+}
+
+function renderAdminOrders() {
+  const pending = ORDERS.filter(o => o.status === 'pending').length;
+  if (pending > 0) {
+    ordersTabBadge.textContent = pending;
+    ordersTabBadge.classList.remove('js-hidden');
+  } else {
+    ordersTabBadge.classList.add('js-hidden');
+  }
+
+  if (ORDERS.length === 0) {
+    adminOrdersList.innerHTML = `
+      <div class="text-center py-16 text-gold-600">
+        <span class="icon text-4xl mb-3 block"><svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg></span>
+        <p class="text-sm">لا توجد طلبات حتى الآن</p>
+        <p class="text-xs mt-1 text-gold-500">ستظهر هنا عند وصول طلبات الزبائن</p>
+      </div>`;
+    return;
+  }
+
+  adminOrdersList.innerHTML = ORDERS.map(order => {
+    const isDone = order.status === 'done';
+    return `
+      <div class="border rounded-2xl p-4 transition-all ${isDone ? 'border-gold-300/20 opacity-60' : 'border-gold-300/60 shadow-gold'}" style="${isDone ? '' : 'background:linear-gradient(135deg,rgba(217,166,83,0.07),rgba(10,8,6,0))'}">
+        <div class="flex items-start justify-between gap-3 mb-3">
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="font-display text-2xl text-[#3B2A17]">طاولة ${escapeHtml(String(order.table))}</span>
+              ${isDone
+                ? `<span class="text-[11px] bg-gold-100/40 text-gold-700 border border-gold-300/40 rounded-full px-2 py-0.5">✓ تم التسليم</span>`
+                : `<span class="text-[11px] bg-[#6B2B2B]/20 text-red-400 border border-red-300/40 rounded-full px-2 py-0.5 animate-pulse">● جديد</span>`}
+            </div>
+            <p class="text-xs text-gold-600">${formatTime(order.createdAt)}</p>
+          </div>
+          <div class="text-left shrink-0">
+            <p class="font-bold text-gold-500 text-lg">${formatPrice(order.total)} ل.س</p>
+          </div>
+        </div>
+        <div class="space-y-1.5 mb-4">
+          ${order.items.map(it => `
+            <div class="flex justify-between text-sm">
+              <span class="text-[#3B2A17]">${escapeHtml(it.name)}</span>
+              <span class="text-gold-600 shrink-0 mr-3">× ${it.qty} · ${formatPrice(it.price * it.qty)} ل.س</span>
+            </div>`).join('')}
+        </div>
+        <div class="flex gap-2">
+          ${!isDone
+            ? `<button data-done="${order.id}" class="flex-1 btn-gold rounded-xl py-2 text-sm font-semibold flex items-center justify-center gap-1.5">
+                <span class="icon"><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg></span>
+                تم التسليم
+              </button>`
+            : `<button data-undone="${order.id}" class="flex-1 rounded-xl py-2 text-sm border border-gold-300/60 text-gold-600 hover:bg-gold-100/40 transition">
+                إعادة تفعيل
+              </button>`}
+          <button data-printorder="${order.id}" class="flex-1 rounded-xl py-2 text-sm border border-gold-300/60 text-gold-500 hover:bg-gold-100/40 transition flex items-center justify-center gap-1.5" title="طباعة الفاتورة">
+            ${icon('printer', 'text-sm')}
+            طباعة الفاتورة
+          </button>
+          <button data-delorder="${order.id}" class="w-10 h-9 rounded-xl border border-red-300/60 text-red-500 flex items-center justify-center hover:bg-red-50 transition" title="حذف الطلب">
+            <span class="icon text-xs"><svg viewBox="0 0 24 24"><path d="M5 7h14M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2M7 7l1 13h8l-1-13"/></svg></span>
+          </button>
+        </div>
+      </div>`;
+  }).join('');
+
+  adminOrdersList.querySelectorAll('[data-done]').forEach(btn =>
+    btn.addEventListener('click', async () => {
+      try { await MenuAPI.updateOrderStatus(btn.dataset.done, 'done'); }
+      catch (err) { console.error(err); showToast('تعذّر تحديث حالة الطلب'); }
+    }));
+  adminOrdersList.querySelectorAll('[data-undone]').forEach(btn =>
+    btn.addEventListener('click', async () => {
+      try { await MenuAPI.updateOrderStatus(btn.dataset.undone, 'pending'); }
+      catch (err) { console.error(err); showToast('تعذّر تحديث حالة الطلب'); }
+    }));
+  adminOrdersList.querySelectorAll('[data-delorder]').forEach(btn =>
+    btn.addEventListener('click', async () => {
+      if (!confirm('هل تريد حذف هذا الطلب؟')) return;
+      try { await MenuAPI.deleteOrder(btn.dataset.delorder); }
+      catch (err) { console.error(err); showToast('تعذّر حذف الطلب'); }
+    }));
+
+  adminOrdersList.querySelectorAll('[data-printorder]').forEach(btn =>
+    btn.addEventListener('click', () => printOrderInvoice(btn.dataset.printorder)));
+}
+
+/* ---------------------------------------------------------------
+   THERMAL PRINTING — 80mm
+   The invoice uses the current interactive menu prices when the
+   item still exists. If an item was deleted, it falls back to the
+   price captured inside the order.
+------------------------------------------------------------------ */
+async function printOrderInvoice(orderId){
+  const order = ORDERS.find(o => o.id === orderId);
+  if (!order || !Array.isArray(order.items) || order.items.length === 0) {
+    showToast('تعذّرت طباعة الفاتورة');
+    return;
+  }
+
+  const currentItems = await MenuAPI.getItems();
+  const byId = Object.fromEntries(currentItems.map(item => [item.id, item]));
+
+  let total = 0;
+  const rows = order.items.map(it => {
+    const currentItem = byId[it.id];
+    const unitPrice = currentItem ? Number(currentItem.price) : Number(it.price || 0);
+    const qty = Number(it.qty || 0);
+    const lineTotal = unitPrice * qty;
+    total += lineTotal;
+
+    return {
+      name: currentItem?.name || it.name,
+      qty,
+      unitPrice,
+      lineTotal
+    };
+  });
+
+  const receipt = document.getElementById('thermalPrintArea');
+  receipt.innerHTML = `
+    <div class="receipt-title">Dylan Cafe</div>
+    <div class="receipt-subtitle">ديلان كافيه · فاتورة طلب</div>
+
+    <div class="receipt-rule"></div>
+
+    <div class="receipt-meta">
+      <span>الطاولة</span>
+      <strong>${escapeHtml(String(order.table))}</strong>
+    </div>
+    <div class="receipt-meta">
+      <span>الوقت</span>
+      <span dir="ltr">${escapeHtml(formatTime(order.createdAt))}</span>
+    </div>
+    <div class="receipt-meta">
+      <span>رقم الطلب</span>
+      <span dir="ltr">${escapeHtml(String(order.id))}</span>
+    </div>
+
+    <div class="receipt-rule"></div>
+
+    <div class="receipt-items">
+      ${rows.map(row => `
+        <div class="receipt-item">
+          <span class="receipt-item-name">${escapeHtml(row.name)}</span>
+          <span class="receipt-qty">× ${row.qty}</span>
+          <span class="receipt-price">${formatPrice(row.lineTotal)} ل.س</span>
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="receipt-rule"></div>
+
+    <div class="receipt-total">
+      <span>الإجمالي</span>
+      <span>${formatPrice(total)} ل.س</span>
+    </div>
+
+    <div class="receipt-footer">شكراً لزيارتكم ♥</div>
+  `;
+
+  // Store the recalculated current-menu total for this print only.
+  receipt.dataset.orderId = order.id;
+  receipt.dataset.total = String(total);
+
+  // Let the browser finish rendering the receipt before opening the
+  // native print dialog. The @media print rules handle 80mm output.
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      window.print();
+    });
+  });
+}
+
+window.addEventListener('afterprint', () => {
+  const receipt = document.getElementById('thermalPrintArea');
+  if (receipt) {
+    receipt.innerHTML = '';
+    receipt.removeAttribute('data-order-id');
+    receipt.removeAttribute('data-total');
+  }
+});
+
+document.getElementById('clearAllOrdersBtn').addEventListener('click', async () => {
+  if (!confirm('هل تريد مسح جميع الطلبات؟')) return;
+  try { await MenuAPI.clearAllOrders(); showToast('تم مسح جميع الطلبات'); }
+  catch (err) { console.error(err); showToast('تعذّر مسح الطلبات'); }
 });
 
 /* ---------------------------------------------------------------
@@ -981,7 +1441,12 @@ async function openAdminPanel(){
   populateCategorySelects();
   resetItemForm();
   await renderAdminItemsList();
+  renderAdminOrders();
+  switchAdminTab('orders');
   adminPanel.classList.remove('js-hidden');
+  document.body.style.overflow = 'hidden'; // prevent bg scroll
+  adminPanel.scrollTop = 0;
+  MenuAPI.startOrdersListener();
 }
 
 function resetItemForm(){
@@ -1087,6 +1552,7 @@ itemForm.addEventListener('submit', async (e) => {
   renderCategoryNav();
   await renderMenu();
   await renderCart();
+  MenuAPI.startMenuListener();
 })();
 </script>
 </body>
