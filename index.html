@@ -295,6 +295,9 @@
     <p class="uppercase tracking-[0.35em] text-gold-600 text-xs mb-2">Dylan Cafe</p>
     <h2 class="font-display text-4xl sm:text-5xl text-[#3B2A17]">قائمتنا الفاخرة</h2>
     <div class="gold-divider max-w-xs mx-auto mt-4"></div>
+    <button id="currentOrderBtn" class="js-hidden mt-5 mx-auto btn-gold rounded-xl px-5 py-3 font-semibold text-sm flex items-center justify-center gap-2 shadow-gold">
+      ➕ إضافة على طلبي
+    </button>
   </div>
 
   <div id="menuSections"></div>
@@ -826,10 +829,41 @@ const MenuAPI = {
       items: Array.isArray(order.items) ? order.items : [],
       total: Number(order.total || 0),
       status: 'pending',
-      createdAt: serverTimestamp()
+      sessionId: String(order.sessionId || ''),
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
     };
     const ref = await addDoc(collection(db, 'orders'), payload);
     return { id: ref.id, ...payload };
+  },
+
+  async addItemsToOrder(id, additions) {
+    const ref = doc(db, 'orders', id);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) throw new Error('Order not found');
+    const order = snap.data() || {};
+    if (order.status !== 'pending') throw new Error('Order is already completed');
+
+    const existing = Array.isArray(order.items) ? order.items.map(item => ({ ...item })) : [];
+    const incoming = Array.isArray(additions) ? additions : [];
+    const merged = existing.slice();
+
+    for (const add of incoming) {
+      const qty = Number(add.qty || 0);
+      if (qty <= 0) continue;
+      const found = merged.find(item => item.id === add.id);
+      if (found) {
+        found.qty = Number(found.qty || 0) + qty;
+        found.name = add.name;
+        found.price = Number(add.price || found.price || 0);
+      } else {
+        merged.push({ id: add.id, name: add.name, price: Number(add.price || 0), qty });
+      }
+    }
+
+    const total = merged.reduce((sum, item) => sum + Number(item.price || 0) * Number(item.qty || 0), 0);
+    await updateDoc(ref, { items: merged, total, updatedAt: serverTimestamp() });
+    return { ...order, id, items: merged, total, status: 'pending' };
   },
 
   async updateOrderStatus(id, status) {
@@ -906,6 +940,51 @@ const MenuAPI = {
 let activeCategory = CATEGORIES[0] ? CATEGORIES[0].id : null;
 let cart = {};      // { itemId: qty }
 let editingItemId = null;
+
+/* ---------------------------------------------------------------
+   CURRENT CUSTOMER ORDER SESSION
+   The browser remembers only the active order for this visit.
+   It expires automatically, and is cleared when the order is done.
+------------------------------------------------------------------ */
+const CUSTOMER_ORDER_STORAGE_KEY = 'dylanCafeCurrentOrder';
+const CUSTOMER_ORDER_MAX_AGE_MS = 12 * 60 * 60 * 1000;
+let currentCustomerOrder = null;
+
+function createCustomerSessionId(){
+  try {
+    if (crypto?.randomUUID) return crypto.randomUUID();
+  } catch (_) {}
+  return 'session-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+}
+
+function saveCustomerOrderSession(orderId, table, sessionId){
+  currentCustomerOrder = { orderId, table: String(table || ''), sessionId: String(sessionId || ''), startedAt: Date.now() };
+  try { localStorage.setItem(CUSTOMER_ORDER_STORAGE_KEY, JSON.stringify(currentCustomerOrder)); } catch (_) {}
+  updateCustomerOrderUI();
+}
+
+function clearCustomerOrderSession(){
+  currentCustomerOrder = null;
+  try { localStorage.removeItem(CUSTOMER_ORDER_STORAGE_KEY); } catch (_) {}
+  updateCustomerOrderUI();
+}
+
+function loadSavedCustomerOrderSession(){
+  try {
+    const raw = localStorage.getItem(CUSTOMER_ORDER_STORAGE_KEY);
+    if (!raw) return null;
+    const saved = JSON.parse(raw);
+    if (!saved?.orderId || !saved?.startedAt || (Date.now() - Number(saved.startedAt)) > CUSTOMER_ORDER_MAX_AGE_MS) {
+      localStorage.removeItem(CUSTOMER_ORDER_STORAGE_KEY);
+      return null;
+    }
+    currentCustomerOrder = saved;
+    return saved;
+  } catch (_) {
+    return null;
+  }
+}
+
 
 /* ---------------------------------------------------------------
    HELPERS
@@ -1057,6 +1136,28 @@ async function renderMenu(){
 }
 
 /* ---------------------------------------------------------------
+   CURRENT ORDER UI
+------------------------------------------------------------------ */
+const currentOrderBtn = document.getElementById('currentOrderBtn');
+
+function updateCustomerOrderUI(){
+  if (!currentOrderBtn) return;
+  if (currentCustomerOrder?.orderId) {
+    currentOrderBtn.classList.remove('js-hidden');
+  } else {
+    currentOrderBtn.classList.add('js-hidden');
+  }
+}
+
+currentOrderBtn?.addEventListener('click', async () => {
+  if (!currentCustomerOrder?.orderId) return;
+  const active = await getActiveCustomerOrder();
+  if (!active) return;
+  await renderCart();
+  openCart();
+});
+
+/* ---------------------------------------------------------------
    CART
 ------------------------------------------------------------------ */
 const cartOverlay = document.getElementById('cartOverlay');
@@ -1065,6 +1166,25 @@ const cartItemsEl = document.getElementById('cartItems');
 const cartTotalEl = document.getElementById('cartTotal');
 const cartCountEl = document.getElementById('cartCount');
 const checkoutBtn = document.getElementById('checkoutBtn');
+
+async function getActiveCustomerOrder(){
+  if (!currentCustomerOrder?.orderId) return null;
+  if ((Date.now() - Number(currentCustomerOrder.startedAt || 0)) > CUSTOMER_ORDER_MAX_AGE_MS) {
+    clearCustomerOrderSession();
+    return null;
+  }
+  try {
+    const snap = await getDoc(doc(db, 'orders', currentCustomerOrder.orderId));
+    if (!snap.exists() || snap.data()?.status !== 'pending') {
+      clearCustomerOrderSession();
+      return null;
+    }
+    return { id: snap.id, ...snap.data() };
+  } catch (err) {
+    console.error(err);
+    return null;
+  }
+}
 
 async function addToCart(itemId){
   cart[itemId] = (cart[itemId] || 0) + 1;
@@ -1130,7 +1250,18 @@ async function renderCart(){
     cartCountEl.classList.add('js-hidden');
   }
 
+  const hasActiveOrder = !!(await getActiveCustomerOrder());
   checkoutBtn.disabled = entries.length === 0;
+  checkoutBtn.innerHTML = hasActiveOrder
+    ? `<span class="icon text-xl"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span> إضافة إلى طلبي`
+    : `<span class="icon text-xl"><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg></span> إرسال الطلب`;
+  cartTableInput.disabled = hasActiveOrder;
+  if (hasActiveOrder && currentCustomerOrder?.table) {
+    cartTableInput.value = String(currentCustomerOrder.table);
+    cartTableError.classList.add('js-hidden');
+  } else if (!hasActiveOrder) {
+    cartTableInput.disabled = false;
+  }
 
   cartItemsEl.querySelectorAll('[data-inc]').forEach(btn =>
     btn.addEventListener('click', () => { cart[btn.dataset.inc]++; renderCart(); }));
@@ -1155,6 +1286,34 @@ checkoutBtn.addEventListener('click', async () => {
   const entries = Object.entries(cart).filter(([, qty]) => qty > 0);
   if (entries.length === 0) return;
 
+  const activeOrder = await getActiveCustomerOrder();
+  let orderItems;
+  let total = 0;
+
+  if (activeOrder) {
+    orderItems = entries.map(([id, qty]) => {
+      const item = byId[id];
+      total += Number(item.price) * qty;
+      return { id, name: item.name, price: Number(item.price), qty };
+    });
+
+    try {
+      await MenuAPI.addItemsToOrder(activeOrder.id, orderItems);
+    } catch (err) {
+      console.error(err);
+      if (String(err?.message || '').includes('completed')) clearCustomerOrderSession();
+      showToast('تعذّرت إضافة الأصناف إلى الطلب الحالي');
+      await renderCart();
+      return;
+    }
+
+    cart = {};
+    await renderCart();
+    closeCart();
+    showToast('✓ تمت الإضافة إلى طلبك');
+    return;
+  }
+
   const tableNumber = cartTableInput.value.trim();
   if (!tableNumber) {
     cartTableError.classList.remove('js-hidden');
@@ -1163,19 +1322,21 @@ checkoutBtn.addEventListener('click', async () => {
   }
   cartTableError.classList.add('js-hidden');
 
-  let total = 0;
-  const orderItems = entries.map(([id, qty]) => {
+  orderItems = entries.map(([id, qty]) => {
     const item = byId[id];
-    total += item.price * qty;
-    return { id, name: item.name, price: item.price, qty };
+    total += Number(item.price) * qty;
+    return { id, name: item.name, price: Number(item.price), qty };
   });
 
+  const sessionId = createCustomerSessionId();
   try {
-    await MenuAPI.submitOrder({
+    const created = await MenuAPI.submitOrder({
       table: tableNumber,
       items: orderItems,
       total,
+      sessionId
     });
+    saveCustomerOrderSession(created.id, tableNumber, sessionId);
   } catch (err) {
     console.error(err);
     showToast('تعذّر إرسال الطلب، تحقق من اتصال Firebase');
@@ -1183,10 +1344,10 @@ checkoutBtn.addEventListener('click', async () => {
   }
 
   cart = {};
-  cartTableInput.value = '';
+  cartTableInput.value = tableNumber;
   await renderCart();
   closeCart();
-  showToast('✓ تم إرسال طلبك — شكراً!');
+  showToast('✓ تم إرسال طلبك — يمكنك إضافة أصناف لاحقاً');
 });
 
 /* ---------------------------------------------------------------
@@ -1313,13 +1474,13 @@ function renderAdminOrders() {
         </div>
         <div class="flex gap-2">
           ${!isDone
-            ? `<button data-done="${order.id}" class="flex-1 btn-gold rounded-xl py-2 text-sm font-semibold flex items-center justify-center gap-1.5">
+            ? `<span class="flex-1 btn-gold rounded-xl py-2 text-sm font-semibold flex items-center justify-center gap-1.5">
                 <span class="icon"><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg></span>
-                تم التسليم
-              </button>`
-            : `<button data-undone="${order.id}" class="flex-1 rounded-xl py-2 text-sm border border-gold-300/60 text-gold-600 hover:bg-gold-100/40 transition">
-                إعادة تفعيل
-              </button>`}
+                بانتظار الحساب
+              </span>`
+            : `<span class="flex-1 rounded-xl py-2 text-sm border border-gold-300/40 text-gold-600 flex items-center justify-center">
+                ✓ مكتمل
+              </span>`}
           <button data-printorder="${order.id}" class="flex-1 rounded-xl py-2 text-sm border border-gold-300/60 text-gold-500 hover:bg-gold-100/40 transition flex items-center justify-center gap-1.5" title="طباعة الفاتورة">
             ${icon('printer', 'text-sm')}
             طباعة الفاتورة
@@ -1334,11 +1495,6 @@ function renderAdminOrders() {
   adminOrdersList.querySelectorAll('[data-done]').forEach(btn =>
     btn.addEventListener('click', async () => {
       try { await MenuAPI.updateOrderStatus(btn.dataset.done, 'done'); }
-      catch (err) { console.error(err); showToast('تعذّر تحديث حالة الطلب'); }
-    }));
-  adminOrdersList.querySelectorAll('[data-undone]').forEach(btn =>
-    btn.addEventListener('click', async () => {
-      try { await MenuAPI.updateOrderStatus(btn.dataset.undone, 'pending'); }
       catch (err) { console.error(err); showToast('تعذّر تحديث حالة الطلب'); }
     }));
   adminOrdersList.querySelectorAll('[data-delorder]').forEach(btn =>
@@ -1363,6 +1519,18 @@ async function printOrderInvoice(orderId){
   if (!order || !Array.isArray(order.items) || order.items.length === 0) {
     showToast('تعذّرت طباعة الفاتورة');
     return;
+  }
+
+  // Printing the invoice is the checkout moment: print + complete the order.
+  if (order.status === 'pending') {
+    try {
+      await MenuAPI.updateOrderStatus(order.id, 'done');
+      if (currentCustomerOrder?.orderId === order.id) clearCustomerOrderSession();
+    } catch (err) {
+      console.error(err);
+      showToast('تعذّر إكمال الطلب قبل الطباعة');
+      return;
+    }
   }
 
   const currentItems = await MenuAPI.getItems();
@@ -1690,6 +1858,11 @@ window.addEventListener('unhandledrejection', (event) => {
    INIT
 ------------------------------------------------------------------ */
 (async function init(){
+  // Restore only the current visit's temporary order, never an old completed order.
+  loadSavedCustomerOrderSession();
+  updateCustomerOrderUI();
+  if (currentCustomerOrder) await getActiveCustomerOrder();
+
   // Render the built-in menu immediately so the page is never blank.
   renderCategoryNav();
   await renderMenu();
