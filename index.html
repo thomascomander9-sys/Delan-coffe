@@ -639,7 +639,7 @@
    Firebase project: dylan-cafe
 ===================================================================== */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, getDocs, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, getDocs, getDoc, setDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDW-6NOeuOxwE4JtrYGWwWRYo2XrLlQ2Mg",
@@ -681,6 +681,7 @@ const ICONS = {
   cold:      '<path d="M6 3h12l-1.2 16a2 2 0 01-2 1.8h-5.6a2 2 0 01-2-1.8L6 3z"/><path d="M6.5 8h11"/><path d="M9 11l1.5 1.5M9 12.5L10.5 11M14 14l1.5 1.5M14 15.5L15.5 14"/>',
   icecream:  '<path d="M12 2a4 4 0 014 4 4 4 0 01-4 4 4 4 0 01-4-4 4 4 0 014-4z"/><path d="M8.5 9.5a3.5 3.5 0 007 0"/><path d="M9 11l3 10 3-10"/>',
   printer:   '<path d="M6 9V3h12v6"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><path d="M6 14h12v7H6z"/><path d="M18 12h.01"/>',
+  hookah:    '<path d="M7 18h10"/><path d="M9 18v-4h6v4"/><path d="M10 14V9h4v5"/><path d="M11 9V6h2v3"/><path d="M13 6c3-1 5 1 5 3 0 2-2 3-4 3"/><path d="M6 18c0-2 1-3 3-3"/>' ,
 };
 function icon(name, cls = ''){
   return `<span class="icon ${cls}"><svg viewBox="0 0 24 24">${ICONS[name] || ''}</svg></span>`;
@@ -699,6 +700,7 @@ const CATEGORIES = [
   { id: 'breakfast',   name: 'الأفطار',       icon: 'sandwich' },
   { id: 'hot-drinks',  name: 'المشاريب الساخنة', icon: 'mug' },
   { id: 'cold-drinks', name: 'المشاريب الباردة', icon: 'cold' },
+  { id: 'hookah',      name: 'الأراكيل',       icon: 'hookah' },
 ];
 
 let MENU_ITEMS = [
@@ -736,8 +738,61 @@ let unsubscribeOrders = null;
 /* ---------------------------------------------------------------
    MenuAPI — Firebase Firestore real-time backend.
 ------------------------------------------------------------------ */
+const MENU_MIGRATION_MARKER = '__system_menu_migration_v2';
+
 const MenuAPI = {
   async getItems() { return MENU_ITEMS; },
+
+  /*
+     One-time migration:
+     The original menu is still embedded in this file. If Firestore was
+     created with only one/new item, we add every missing original item
+     without deleting or replacing anything already in Firestore.
+     A marker document makes this run only once for the whole project.
+  */
+  async migrateBuiltInMenu() {
+    const markerRef = doc(db, 'menu', MENU_MIGRATION_MARKER);
+    const markerSnap = await getDoc(markerRef);
+    if (markerSnap.exists()) return { migrated: false, alreadyDone: true };
+
+    const snapshot = await getDocs(collection(db, 'menu'));
+    const existingNames = new Set(
+      snapshot.docs
+        .filter(d => d.id !== MENU_MIGRATION_MARKER)
+        .map(d => String(d.data()?.name || '').trim())
+        .filter(Boolean)
+    );
+
+    let added = 0;
+    for (const item of MENU_ITEMS) {
+      const name = String(item.name || '').trim();
+      if (!name || existingNames.has(name)) continue;
+
+      // Deterministic IDs prevent duplicate legacy products if two tabs
+      // happen to initialize at the same time.
+      const legacyRef = doc(db, 'menu', `legacy-${item.id}`);
+      const legacySnap = await getDoc(legacyRef);
+      if (!legacySnap.exists()) {
+        await setDoc(legacyRef, {
+          name,
+          price: Number(item.price || 0),
+          category: String(item.category || ''),
+          image: item.image || '',
+          migratedFrom: item.id,
+          migratedAt: serverTimestamp()
+        });
+        added++;
+      }
+      existingNames.add(name);
+    }
+
+    await setDoc(markerRef, {
+      version: 2,
+      completedAt: serverTimestamp(),
+      added
+    });
+    return { migrated: true, added };
+  },
 
   async addItem(item) {
     const payload = {
@@ -791,21 +846,18 @@ const MenuAPI = {
 
   startMenuListener() {
     if (unsubscribeMenu) unsubscribeMenu();
-    // Read the collection directly and sort in the browser. This avoids
-    // failures caused by an incomplete/missing Firestore index or by an
-    // old document that does not contain a name field.
+    // No orderBy/query here: sorting happens in the browser, so missing
+    // fields or Firestore index configuration can never blank the menu.
     unsubscribeMenu = onSnapshot(collection(db, 'menu'), snapshot => {
       firebaseMenuReady = true;
       clearFirebaseError();
-      if (snapshot.empty) {
-        // Keep the built-in menu visible if Firestore is empty.
-        // The admin can add the real Firestore items from the dashboard.
-        showToast('Firebase متصل، لكن قائمة menu فارغة');
-      } else {
-        MENU_ITEMS = snapshot.docs
-          .map(d => ({ id: d.id, ...d.data() }))
-          .sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'ar'));
-      }
+
+      MENU_ITEMS = snapshot.docs
+        .filter(d => d.id !== MENU_MIGRATION_MARKER)
+        .map(d => ({ id: d.id, ...d.data() }))
+        .filter(item => item.name)
+        .sort((a, b) => String(a.name).localeCompare(String(b.name), 'ar'));
+
       renderCategoryNav();
       renderMenu();
       renderCart();
@@ -814,7 +866,7 @@ const MenuAPI = {
       firebaseMenuReady = false;
       showFirebaseError(error, 'تحميل القائمة');
       showToast('تعذّر التحميل من Firebase');
-      // Keep the last known/built-in menu instead of blanking the page.
+      // Never blank the UI if Firebase is temporarily unavailable.
       renderCategoryNav();
       renderMenu();
       renderCart();
@@ -1638,10 +1690,31 @@ window.addEventListener('unhandledrejection', (event) => {
    INIT
 ------------------------------------------------------------------ */
 (async function init(){
+  // Render the built-in menu immediately so the page is never blank.
   renderCategoryNav();
   await renderMenu();
   await renderCart();
-  MenuAPI.startMenuListener();
+
+  try {
+    // First run: merge the original 24 products into Firestore.
+    // Existing/new Firestore products are preserved.
+    const result = await MenuAPI.migrateBuiltInMenu();
+    if (result.migrated && result.added > 0) {
+      showToast(`تمت استعادة ${result.added} صنف إلى Firebase`);
+    }
+    MenuAPI.startMenuListener();
+  } catch (err) {
+    firebaseMenuReady = false;
+    showFirebaseError(err, 'تهيئة القائمة في Firebase');
+    showToast('تعذّر التحميل من Firebase — تم إبقاء القائمة المحلية مؤقتاً');
+    // Keep the 24 built-in items visible if Firestore rules/network
+    // prevent the one-time migration. The site remains usable.
+    renderCategoryNav();
+    renderMenu();
+    renderCart();
+    // Still start the listener so it can recover automatically.
+    MenuAPI.startMenuListener();
+  }
 })();
 </script>
 </body>
